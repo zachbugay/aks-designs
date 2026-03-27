@@ -213,7 +213,7 @@ module "aks" {
       }
       security = {
         enabled                   = true
-        advanced_network_policies = "L7"
+        advanced_network_policies = "FQDN"
       }
     }
   }
