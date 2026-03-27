@@ -10,7 +10,7 @@ An Azure Kubernetes Service reference architecture deployed end-to-end with `azd
 
 `azd up` provisions infrastructure, installs ArgoCD, and bootstraps a GitOps pipeline:
 
-```
+```txt
 azd provision
   └── Terraform creates AKS, ACR, Key Vault, VNets, firewall, etc.
 
@@ -26,7 +26,6 @@ azd deploy
 
 postdeploy.ps1
   └── Creates a root ArgoCD Application pointing to src/apps in this Git repo
-
 ArgoCD takes over:
   ├── Syncs the App of Apps chart, which creates 3 child Applications
   │   and 1 ApplicationSet (tenants)
@@ -49,7 +48,7 @@ Tenants are managed as files, not ArgoCD Application manifests. An [ApplicationS
 Deployment is organized into four Helm charts, managed by ArgoCD via sync waves:
 
 | Wave | Chart | Namespace | Contents |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `infra-base` | `infra` | SecretProviderClass, secrets-sync Deployment, PostSync secrets verification hook |
 | 2 | `gateway` | `infra` | ApplicationLoadBalancer, Gateway, FrontendTLSPolicy, Keycloak HTTPRoute, PostSync DuckDNS update hook |
 | 2 | `identity` | `identity` | Keycloak StatefulSet, Postgres Deployment, ReferenceGrant |
@@ -119,7 +118,7 @@ azd up
 ## Environment Variables Reference
 
 | Variable | Required | Description |
-|---|---|---|
+| --- | --- | --- |
 | `AZURE_ENV_NAME` | Yes | Environment name (e.g., `nonprod`) |
 | `AZURE_WORKLOAD_ENV_NAME` | Yes | Workload environment (e.g., `dev`) |
 | `AZURE_LOCATION` | Yes | Azure region (e.g., `westus3`) |

@@ -1,0 +1,24 @@
+# ---------------------------------------------------------------
+# ServiceEntry — make Keycloak visible to the Istio mesh
+#
+# The API pod's Envoy sidecar intercepts outbound traffic.
+# Without this entry, Envoy treats keycloak.identity as an
+# unknown destination and drops the connection, causing JWT
+# validation (OIDC discovery + JWKS fetch) to fail with 401.
+# ---------------------------------------------------------------
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: keycloak-identity
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  hosts:
+    - keycloak.identity.svc.cluster.local
+  ports:
+    - number: 8080
+      name: http
+      protocol: HTTP
+  location: MESH_INTERNAL
+  resolution: DNS
