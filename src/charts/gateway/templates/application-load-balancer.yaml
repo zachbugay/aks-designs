@@ -1,0 +1,10 @@
+apiVersion: alb.networking.azure.io/v1
+kind: ApplicationLoadBalancer
+metadata:
+  name: alb-test
+  namespace: infra
+  labels:
+    {{- include "gateway.alb.labels" . | nindent 4 }}
+spec:
+  associations:
+  - {{ .Values.aksLbSubnetId }}

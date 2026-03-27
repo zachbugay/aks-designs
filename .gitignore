@@ -1,0 +1,69 @@
+# Azure
+.azure
+
+# Terraform
+.terraform/
+.terraform*
+**/terraform.tfstate
+
+# C# build outputs
+**/bin/
+**/obj/
+
+# NuGet
+*.nupkg
+**/packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# VS build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+*.VisualState.xml
+TestResult.xml
+[Tt]est[Rr]esult*/
+
+# Rider
+.idea/
+*.sln.iml
+
+# dotnet tool
+.config/dotnet-tools.json
+
+# Publish output
+*.publish.xml
+PublishScripts/
+publish/
+
+# Certs
+*.crt
+*.csr
+*.key
+*.pfx
+*.srl
+
+# Deploy marker
+hooks/.last-deploy-sha
+
+# Generated bootstrap manifest (contains environment-specific values)
+root-application.json
+
+# Draw.io bkp
+*.bkp

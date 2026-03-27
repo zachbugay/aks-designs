@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tenant
+description: Customer tenant - application deployments, services, routes, and health checks
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

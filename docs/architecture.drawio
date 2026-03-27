@@ -1,0 +1,323 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1" pages="2">
+  <diagram id="hub-and-spoke" name="Hub and Spoke Architecture">
+    <mxGraphModel dx="2466" dy="1601" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="XfheLayf1cOMn2U_JcD4-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;dashPattern=12 12;strokeColor=light-dark(#000099,#EDEDED);align=center;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;fontSize=32;" value="Azure" vertex="1">
+          <mxGeometry height="1230" width="1460" x="-70" y="-70" as="geometry" />
+        </mxCell>
+        <mxCell id="hub-vnet" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;" value="Hub VNet&#xa;10.100.0.0/22" vertex="1">
+          <mxGeometry height="580" width="680" x="420" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-gw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="GatewaySubnet&#xa;10.100.0.0/27" vertex="1">
+          <mxGeometry height="90" width="140" x="440" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="vnet-gw" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/Virtual_Network_Gateways.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="VPN Gateway&#xa;(optional)" vertex="1">
+          <mxGeometry height="40" width="40" x="475" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-fw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="AzureFirewallSubnet&#xa;10.100.0.64/26" vertex="1">
+          <mxGeometry height="120" width="160" x="600" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-2" edge="1" parent="1" source="fw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="tD-xxvFhnIprlfOTcpgN-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/Firewalls.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Azure Firewall&#xa;(Basic SKU)" vertex="1">
+          <mxGeometry height="50" width="50" x="640" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-pip" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=8;image=img/lib/azure2/networking/Public_IP_Addresses.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Public IP&#xa;(Firewall)" vertex="1">
+          <mxGeometry height="40" width="40" x="700" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-fw-mgmt" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="FW Mgmt Subnet&#xa;10.100.0.128/26" vertex="1">
+          <mxGeometry height="90" width="140" x="780" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-mgmt-pip" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=8;image=img/lib/azure2/networking/Public_IP_Addresses.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Public IP&#xa;(FW Mgmt)" vertex="1">
+          <mxGeometry height="40" width="40" x="820" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-bastion" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#BBBBBB;fontSize=10;verticalAlign=top;spacingTop=3;dashed=1;fontColor=#999999;" value="AzureBastionSubnet&#xa;10.100.0.192/26&#xa;(disabled)" vertex="1">
+          <mxGeometry height="90" width="140" x="940" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-gw" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/NAT.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="NAT Gateway" vertex="1">
+          <mxGeometry height="50" width="50" x="440" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-pip" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=8;image=img/lib/azure2/networking/Public_IP_Addresses.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Public IP&#xa;(NAT)" vertex="1">
+          <mxGeometry height="40" width="40" x="510" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="rt-gw" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/Route_Tables.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Route Table&#xa;(Gateway)" vertex="1">
+          <mxGeometry height="40" width="40" x="470" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="mgt-rg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontStyle=1;verticalAlign=top;spacingTop=5;" value="Resource Group: rg-mgt" vertex="1">
+          <mxGeometry height="230" width="630" x="440" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="law" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/management_governance/Log_Analytics_Workspaces.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Log Analytics&#xa;Workspace" vertex="1">
+          <mxGeometry height="50" width="50" x="480" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="amw" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/management_governance/Monitor.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Azure Monitor&#xa;Workspace" vertex="1">
+          <mxGeometry height="50" width="50" x="600" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="storage" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/storage/Storage_Accounts.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Storage Account&#xa;(Flow Logs)" vertex="1">
+          <mxGeometry height="50" width="50" x="720" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="nw" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/Network_Watcher.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Network Watcher&#xa;Flow Logs &amp;&#xa;Connection Monitor" vertex="1">
+          <mxGeometry height="50" width="50" x="870" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-rules" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E6;strokeColor=#d6b656;fontSize=8;align=left;spacingLeft=5;" value="Firewall Rule Collections:&#xa;• private-private-any (RFC1918)&#xa;• private-internet-web (80/443)&#xa;• AKS API server (9000/443/1194)&#xa;• KMS &amp; NTP" vertex="1">
+          <mxGeometry height="80" width="200" x="480" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="dns-vnet" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;" value="Spoke DNS VNet&#xa;10.100.4.0/24" vertex="1">
+          <mxGeometry height="420" width="380" x="-20" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-dns-in" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="Inbound Subnet&#xa;10.100.4.0/25" vertex="1">
+          <mxGeometry height="80" width="150" x="10" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-dns-out" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="Outbound Subnet&#xa;10.100.4.128/25" vertex="1">
+          <mxGeometry height="80" width="150" x="190" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="dns-resolver" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/DNS_Private_Resolver.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Private DNS&#xa;Resolver" vertex="1">
+          <mxGeometry height="50" width="50" x="100" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="dns-fwd-ruleset" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/DNS_Zones.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="DNS Forwarding&#xa;Ruleset" vertex="1">
+          <mxGeometry height="40" width="40" x="230" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="dns-zones" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#82b366;fontSize=8;align=left;spacingLeft=5;" value="Private DNS Zones&#xa;• privatelink.blob.core.windows.net&#xa;• privatelink.vaultcore.azure.net&#xa;• privatelink.monitor.azure.com&#xa;• privatelink.openai.azure.com&#xa;• privatelink.azurewebsites.net&#xa;• + 5 more zones" vertex="1">
+          <mxGeometry height="110" width="230" x="10" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="resolver-to-in" edge="1" parent="1" source="snet-dns-in" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;fontSize=8;" target="dns-resolver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="resolver-to-out" edge="1" parent="1" source="snet-dns-out" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;fontSize=8;" target="dns-resolver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="aks-vnet" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;" value="Spoke AKS VNet&#xa;10.100.12.0/22" vertex="1">
+          <mxGeometry height="410" width="680" x="420" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-aks-cluster" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="AKS Cluster Subnet&#xa;10.100.12.0/24" vertex="1">
+          <mxGeometry height="200" width="300" x="450" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="aks" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=10;image=img/lib/azure2/containers/Kubernetes_Services.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="AKS Cluster&#xa;(Managed)" vertex="1">
+          <mxGeometry height="60" width="60" x="530" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="aks-details" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#9673a6;fontSize=8;align=left;spacingLeft=5;" value="• Standard_D2as_v7 nodes&#xa;• Workload Identity enabled&#xa;• OIDC Issuer enabled&#xa;• Azure RBAC (Entra ID)&#xa;• UDR outbound routing&#xa;• Prometheus monitoring" vertex="1">
+          <mxGeometry height="90" width="115" x="620" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="aks-nodepool" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/compute/VM_Scale_Sets.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="System Node Pool&#xa;(auto-scale)" vertex="1">
+          <mxGeometry height="40" width="40" x="520" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-aks-lb" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="AKS LB Subnet (AGC)&#xa;10.100.13.0/24&#xa;(ServiceNetworking delegation)" vertex="1">
+          <mxGeometry height="150" width="270" x="800" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="agc" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=8;image=img/lib/azure2/networking/Application_Gateways.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="App Gateway&#xa;for Containers&#xa;(ALB Controller)" vertex="1">
+          <mxGeometry height="50" width="50" x="880" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="acr" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/containers/Container_Registries.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Azure Container&#xa;Registry (ACR)" vertex="1">
+          <mxGeometry height="50" width="50" x="460" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="rt-aks" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/Route_Tables.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Route Tables&#xa;(0.0.0.0/0 → Firewall)" vertex="1">
+          <mxGeometry height="40" width="40" x="630" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="aks-workloads" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#9673a6;fontSize=8;align=left;spacingLeft=5;" value="Deployed Workloads (via Helm)&#xa;• Gateway API + TLS&#xa;• Keycloak (OIDC)&#xa;• Bugay.Service.Example (.NET API)&#xa;• Bugay.ReactApp.Example (React)" vertex="1">
+          <mxGeometry height="80" width="220" x="820" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="aks-to-acr" edge="1" parent="1" source="aks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;fontSize=8;dashed=1;" target="acr" value="AcrPull">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mon-vnet" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;" value="Spoke Monitoring VNet&#xa;10.100.5.0/27" vertex="1">
+          <mxGeometry height="410" width="380" x="-20" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="snet-mon" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;verticalAlign=top;spacingTop=3;" value="Monitoring Subnet&#xa;10.100.5.0/27" vertex="1">
+          <mxGeometry height="100" width="340" x="10" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="dce" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/management_governance/Monitor.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Data Collection&#xa;Endpoint (Private)" vertex="1">
+          <mxGeometry height="40" width="40" x="60" y="665" as="geometry" />
+        </mxCell>
+        <mxCell id="dcr" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/management_governance/Metrics.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Data Collection&#xa;Rule (Linux)" vertex="1">
+          <mxGeometry height="40" width="40" x="240" y="665" as="geometry" />
+        </mxCell>
+        <mxCell id="pls-to-law" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;fontSize=8;dashed=1;" target="law" value="Scoped Service">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="90" y="850" />
+              <mxPoint x="380" y="850" />
+              <mxPoint x="380" y="425" />
+            </Array>
+            <mxPoint x="90" y="810" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mon-details" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0F0;strokeColor=#b85450;fontSize=8;align=left;spacingLeft=5;" value="Linked Private DNS Zones:&#xa;• privatelink.monitor.azure.com&#xa;• privatelink.ods.opinsights.azure.com&#xa;• privatelink.oms.opinsights.azure.com&#xa;• privatelink.agentsvc.azure-automation.net&#xa;• privatelink.blob.core.windows.net" vertex="1">
+          <mxGeometry height="100" width="250" x="10" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="peer-hub-dns" edge="1" parent="1" source="hub-vnet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#009900;strokeWidth=2;fontSize=9;fontColor=#009900;dashed=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;exitX=0;exitY=0.3;exitDx=0;exitDy=0;" target="dns-vnet" value="VNet Peering">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="peer-hub-aks" edge="1" parent="1" source="hub-vnet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#009900;strokeWidth=2;fontSize=9;fontColor=#009900;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="aks-vnet" value="VNet Peering">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="peer-hub-mon" edge="1" parent="1" source="hub-vnet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#009900;strokeWidth=2;fontSize=9;fontColor=#009900;exitX=0;exitY=0.85;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" target="mon-vnet" value="VNet Peering">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dns-flow" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fillColor=#FFF9C4;strokeColor=#d6b656;fontSize=9;align=center;" value="All VNets use DNS Resolver&#xa;Inbound Endpoint IP as&#xa;custom DNS server" vertex="1">
+          <mxGeometry height="70" width="170" x="1130" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="routing-flow" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fillColor=#FFF9C4;strokeColor=#d6b656;fontSize=9;align=center;" value="All spoke subnets:&#xa;0.0.0.0/0 → Azure Firewall&#xa;(UDR forced tunneling)" vertex="1">
+          <mxGeometry height="60" width="170" x="1130" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="azd-flow" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fillColor=#FFF9C4;strokeColor=#d6b656;fontSize=9;align=center;" value="azd up deploys:&#xa;1. Terraform infra (azd provision)&#xa;2. Container images → ACR&#xa;3. Helm charts → ACR&#xa;4. TLS certs, DuckDNS, Keycloak" vertex="1">
+          <mxGeometry height="80" width="180" x="1130" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="TbANe7_rcZB4XjTmFNZs-1" edge="1" parent="1" source="internet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="snet-aks-lb">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1693" y="620" />
+              <mxPoint x="935" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="internet" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=11;fontStyle=1;image=img/lib/azure2/general/Globe.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Internet" vertex="1">
+          <mxGeometry height="65" width="65" x="1660" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="duckdns" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/DNS_Zones.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="DuckDNS&#xa;(Dynamic DNS)" vertex="1">
+          <mxGeometry height="40" width="40" x="1672.5" y="224.65999999999997" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Azure_Firewall_Policy.svg;" value="Azure Firewall Policy" vertex="1">
+          <mxGeometry height="49.32" width="68" x="630" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-3" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Workbooks.svg;" value="Azure Firewall Workbook" vertex="1">
+          <mxGeometry height="37.84" width="34.93" x="800" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-4" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/ResourceGroup.svg;" value="rg-dns" vertex="1">
+          <mxGeometry height="16" width="20" y="96" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-5" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/ResourceGroup.svg;" value="rg-shared-hub" vertex="1">
+          <mxGeometry height="16" width="20" x="460" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-6" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/ResourceGroup.svg;" value="rg-monitoring" vertex="1">
+          <mxGeometry height="16" width="20" x="10" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-7" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/ResourceGroup.svg;" value="rg-ent-apps" vertex="1">
+          <mxGeometry height="16" width="20" x="460" y="689" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-9" edge="1" parent="1" source="tD-xxvFhnIprlfOTcpgN-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="mon-details" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-8" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Private_Endpoint.svg;" value="private endpoint&amp;nbsp;&lt;div&gt;(azuremonitor)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="37.92" width="41.36" x="238.64" y="772.08" as="geometry" />
+        </mxCell>
+        <mxCell id="tD-xxvFhnIprlfOTcpgN-10" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Private_Link.svg;" value="monitor private link" vertex="1">
+          <mxGeometry height="38.5" width="42" x="70" y="772.08" as="geometry" />
+        </mxCell>
+        <mxCell id="XfheLayf1cOMn2U_JcD4-2" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/Key.svg;" value="" vertex="1">
+          <mxGeometry height="50" width="31" x="-51" y="-60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="kubernetes-workloads" name="Kubernetes Workloads">
+    <mxGraphModel dx="984" dy="572" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="k0" />
+        <mxCell id="k1" parent="k0" />
+        <mxCell id="k-aks" parent="k1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#9673a6;strokeWidth=3;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=8;arcSize=3;" value="AKS Cluster" vertex="1">
+          <mxGeometry height="1100" width="1560" x="10" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="k-node" parent="k1" style="shape=mxgraph.kubernetes.node;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=9;" value="System Node Pool" vertex="1">
+          <mxGeometry height="40" width="40" x="40" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ns-infra" parent="k1" style="shape=mxgraph.kubernetes.ns;html=1;whiteSpace=wrap;fillColor=#E3F2FD;strokeColor=#326CE5;strokeWidth=3;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=6;" value="infra" vertex="1">
+          <mxGeometry height="970" width="440" x="30" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k-alb" parent="k1" style="shape=mxgraph.kubernetes.netpol;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="ApplicationLoadBalancer&#xa;alb-test" vertex="1">
+          <mxGeometry height="40" width="40" x="80" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-gateway" parent="k1" style="shape=mxgraph.kubernetes.ing2;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="Gateway&#xa;agc-gateway" vertex="1">
+          <mxGeometry height="40" width="40" x="210" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-tls-policy" parent="k1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#326CE5;fontSize=8;align=center;" value="FrontendTLSPolicy" vertex="1">
+          <mxGeometry height="35" width="150" x="80" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="k-route-kc" parent="k1" style="shape=mxgraph.kubernetes.ing2;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="HTTPRoute&#xa;route-keycloak" vertex="1">
+          <mxGeometry height="40" width="40" x="80" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="k-route-app" parent="k1" style="shape=mxgraph.kubernetes.ing2;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="HTTPRoute&#xa;route-bugay-reactapp" vertex="1">
+          <mxGeometry height="40" width="40" x="260" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="k-refgrant-identity" parent="k1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#326CE5;fontSize=8;" value="ReferenceGrant&#xa;(allow-infra-to-identity)" vertex="1">
+          <mxGeometry height="40" width="170" x="55" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="k-refgrant-dev" parent="k1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#326CE5;fontSize=8;" value="ReferenceGrant&#xa;(allow-infra-to-dev)" vertex="1">
+          <mxGeometry height="40" width="170" x="245" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ns-identity" parent="k1" style="shape=mxgraph.kubernetes.ns;html=1;whiteSpace=wrap;fillColor=#E8F5E9;strokeColor=#326CE5;strokeWidth=3;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=6;" value="identity" vertex="1">
+          <mxGeometry height="970" width="560" x="510" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k-kc-sts" parent="k1" style="shape=mxgraph.kubernetes.sts;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="keycloak&#xa;StatefulSet (2)" vertex="1">
+          <mxGeometry height="40" width="40" x="555" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-svc-kc" parent="k1" style="shape=mxgraph.kubernetes.svc;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="keycloak&#xa;ClusterIP :8080" vertex="1">
+          <mxGeometry height="40" width="40" x="680" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-svc-kc-disc" parent="k1" style="shape=mxgraph.kubernetes.svc;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="keycloak-discovery&#xa;Headless (JGroups)" vertex="1">
+          <mxGeometry height="40" width="40" x="820" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-postgres-deploy" parent="k1" style="shape=mxgraph.kubernetes.deploy;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="postgres&#xa;Deployment (1)" vertex="1">
+          <mxGeometry height="40" width="40" x="555" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="k-svc-postgres" parent="k1" style="shape=mxgraph.kubernetes.svc;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="postgres&#xa;ClusterIP :5432" vertex="1">
+          <mxGeometry height="40" width="40" x="680" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="ns-dev" parent="k1" style="shape=mxgraph.kubernetes.ns;html=1;whiteSpace=wrap;fillColor=#FFF3E0;strokeColor=#326CE5;strokeWidth=3;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=6;" value="dev (realm)" vertex="1">
+          <mxGeometry height="970" width="440" x="1110" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k-svc-deploy" parent="k1" style="shape=mxgraph.kubernetes.deploy;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="bugay-service-example&#xa;Deployment (1)" vertex="1">
+          <mxGeometry height="40" width="40" x="1155" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-svc-svc" parent="k1" style="shape=mxgraph.kubernetes.svc;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="bugay-service-example&#xa;ClusterIP :8080" vertex="1">
+          <mxGeometry height="40" width="40" x="1295" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k-hcp-svc" parent="k1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;fontSize=8;" value="HealthCheckPolicy&#xa;(svc /healthz)" vertex="1">
+          <mxGeometry height="35" width="150" x="1140" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="k-react-deploy" parent="k1" style="shape=mxgraph.kubernetes.deploy;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="bugay-reactapp-example&#xa;Deployment (1)" vertex="1">
+          <mxGeometry height="40" width="40" x="1155" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="k-react-svc" parent="k1" style="shape=mxgraph.kubernetes.svc;html=1;pointerEvents=1;dashed=0;fillColor=#326CE5;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;fontSize=8;" value="bugay-reactapp-example&#xa;ClusterIP :8080" vertex="1">
+          <mxGeometry height="40" width="40" x="1295" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="k-hcp-react" parent="k1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;fontSize=8;" value="HealthCheckPolicy&#xa;(reactapp /healthz)" vertex="1">
+          <mxGeometry height="35" width="150" x="1140" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="e-gw-alb" edge="1" parent="k1" source="k-gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#326CE5;fontSize=8;" target="k-alb" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-gw-tls" edge="1" parent="k1" source="k-gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#EF9C00;fontSize=8;dashed=1;" target="k-tls-policy" value="TLS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-secret-tls" edge="1" parent="k1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#EF9C00;fontSize=8;dashed=1;" target="k-tls-policy" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="345" y="200.04761904761904" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-route-kc" edge="1" parent="k1" source="k-route-kc" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#326CE5;fontSize=8;dashed=1;" target="k-svc-kc" value="routes to">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-route-app-svc" edge="1" parent="k1" source="k-route-app" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#326CE5;fontSize=8;dashed=1;" target="k-svc-svc" value="routes to">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-route-app-react" edge="1" parent="k1" source="k-route-app" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#326CE5;fontSize=8;dashed=1;" target="k-react-svc" value="routes to">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-kc-disc" edge="1" parent="k1" source="k-kc-sts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;fontSize=8;" target="k-svc-kc-disc" value="JGroups">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-kc-pg" edge="1" parent="k1" source="k-kc-sts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;fontSize=8;" target="k-svc-postgres" value="DB :5432">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-svc-kc" edge="1" parent="k1" source="k-svc-deploy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#999999;fontSize=8;dashed=1;" target="k-svc-kc" value="OIDC auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pWvXQS6d_k_q0Ip3dLhc-0" parent="k1" style="aspect=fixed;sketch=0;html=1;dashed=0;whitespace=wrap;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63,0],[0.1,0.2,0],[0.9,0.2,0],[0.5,0,0],[0.995,0.63,0],[0.72,0.99,0],[0.5,1,0],[0.28,0.99,0]];shape=mxgraph.kubernetes.icon2;prIcon=secret;fontSize=8;" value="gateway-tls-secret" vertex="1">
+          <mxGeometry height="48" width="50" x="340" y="176" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

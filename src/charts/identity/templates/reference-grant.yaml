@@ -1,0 +1,15 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-{{ .Values.infraNamespace }}-to-{{ .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "identity.labels" . | nindent 4 }}
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: {{ .Values.infraNamespace }}
+  to:
+    - group: ""
+      kind: Service

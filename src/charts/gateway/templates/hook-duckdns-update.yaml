@@ -1,0 +1,53 @@
+{{- if .Values.duckdns.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: duckdns-update
+  namespace: infra
+  labels:
+    {{- include "gateway.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "gateway.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: duckdns-update
+      containers:
+        - name: duckdns-update
+          image: alpine/kubectl:latest
+          command: ["/bin/sh", "/scripts/update-duckdns.sh"]
+          env:
+            - name: GATEWAY_NAME
+              value: "agc-gateway"
+            - name: GATEWAY_NAMESPACE
+              value: "infra"
+            - name: DUCKDNS_HOSTNAMES
+              value: {{ .Values.duckdns.hostnames | join "," | quote }}
+            - name: DUCKDNS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: duckdns-token
+                  key: token
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: duckdns-update-script
+            defaultMode: 0755
+{{- end }}

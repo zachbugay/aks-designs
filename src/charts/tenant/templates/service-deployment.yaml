@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.service.name }}
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.service.replicas }}
+  selector:
+    matchLabels:
+      {{- include "tenant.service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tenant.service.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Values.service.name }}
+          image: "{{ .Values.acrName }}.azurecr.io/{{ .Values.service.image }}:{{ .Values.service.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: {{ .Values.service.env.aspnetcoreEnvironment | quote }}
+            - name: Keycloak__Authority
+              value: "http://keycloak.identity.svc.cluster.local:8080/realms/{{ .Values.tenantName }}"
+            - name: Keycloak__Issuer
+              value: "https://{{ .Values.identityProviderHostname }}/realms/{{ .Values.tenantName }}"
+            - name: Keycloak__Audience
+              value: "weather-app"
+          resources:
+            {{- toYaml .Values.service.resources | nindent 12 }}

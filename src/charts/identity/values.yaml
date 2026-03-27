@@ -1,0 +1,32 @@
+namespace: identity
+infraNamespace: infra
+
+keycloak:
+  replicas: 2
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.5.5"
+  adminUsername: admin
+  adminPassword: admin
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2000Mi
+    requests:
+      cpu: 500m
+      memory: 1700Mi
+
+postgres:
+  image:
+    repository: mirror.gcr.io/postgres
+    tag: "17"
+  username: keycloak
+  password: keycloak
+  database: keycloak
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1000Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi

@@ -1,0 +1,34 @@
+{{ .Chart.Name }} has been installed for tenant "{{ .Values.tenantName }}".
+
+Chart version: {{ .Chart.Version }}
+
+This chart deployed the following into the "{{ .Values.tenantName }}" namespace:
+  - Deployment "{{ .Values.service.name }}" ({{ .Values.service.replicas }} replica(s), port {{ .Values.service.port }})
+  - Service "{{ .Values.service.name }}" (ClusterIP)
+  - HealthCheckPolicy "{{ .Values.service.name }}-health-check" ({{ .Values.service.healthCheck.path }})
+  - Deployment "{{ .Values.reactApp.name }}" ({{ .Values.reactApp.replicas }} replica(s), port {{ .Values.reactApp.port }})
+  - Service "{{ .Values.reactApp.name }}" (ClusterIP)
+  - HealthCheckPolicy "{{ .Values.reactApp.name }}-health-check" ({{ .Values.reactApp.healthCheck.path }})
+  - HTTPRoute "route-{{ .Values.tenantName }}" (hostname: {{ .Values.appHostname }})
+  - ReferenceGrant (allows HTTPRoutes from "{{ .Values.gateway.namespace }}" to reach services in "{{ .Values.tenantName }}")
+
+Routing rules:
+  /weatherforecast -> {{ .Values.service.name }}:{{ .Values.service.port }}
+  /*               -> {{ .Values.reactApp.name }}:{{ .Values.reactApp.port }}
+
+Container images (from {{ .Values.acrName }}.azurecr.io):
+  - {{ .Values.service.image }}:{{ .Values.service.tag }}
+  - {{ .Values.reactApp.image }}:{{ .Values.reactApp.tag }}
+
+Verify the deployments are running:
+
+  kubectl get pods -n {{ .Values.tenantName }}
+
+Check the HTTPRoute status:
+
+  kubectl get httproute route-{{ .Values.tenantName }} -n {{ .Values.gateway.namespace }}
+
+To learn more about this release:
+
+  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}

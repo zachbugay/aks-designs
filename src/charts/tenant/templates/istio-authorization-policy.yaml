@@ -1,0 +1,80 @@
+# ---------------------------------------------------------------
+# Istio AuthorizationPolicy — L7 HTTP enforcement
+#
+# Restricts application-layer traffic to the exact HTTP methods
+# and paths each workload serves.  Works with Cilium L3/L4
+# policies for defense in depth.
+#
+# Requires Istio sidecar injection on the tenant namespace.
+# For AKS managed Istio addon with revisions, label the namespace:
+#   istio.io/rev: <revision>  (e.g. asm-1-28)
+#
+# Source rules:
+#   - Same namespace (in-mesh pod-to-pod)
+#   - Unauthenticated sources (AGC health probes + data plane,
+#     which originate outside the mesh with no mTLS identity)
+# Cross-tenant traffic is denied — other namespace principals
+# do not match either rule.
+# ---------------------------------------------------------------
+
+# 1. Service API — allow GET /healthz and GET /weatherforecast
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: service-authz
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.service.name }}
+  action: ALLOW
+  rules:
+    # In-mesh traffic from the same tenant namespace
+    - from:
+        - source:
+            namespaces:
+              - {{ .Values.tenantName | quote }}
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/healthz", "/weatherforecast"]
+    # External traffic (AGC) — no mTLS identity
+    - from:
+        - source:
+            notPrincipals: ["*"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/healthz", "/weatherforecast"]
+---
+# 2. React App — allow GET on any path (SPA static files + healthz)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: reactapp-authz
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.reactApp.name }}
+  action: ALLOW
+  rules:
+    # In-mesh traffic from the same tenant namespace
+    - from:
+        - source:
+            namespaces:
+              - {{ .Values.tenantName | quote }}
+      to:
+        - operation:
+            methods: ["GET"]
+    # External traffic (AGC) — no mTLS identity
+    - from:
+        - source:
+            notPrincipals: ["*"]
+      to:
+        - operation:
+            methods: ["GET"]

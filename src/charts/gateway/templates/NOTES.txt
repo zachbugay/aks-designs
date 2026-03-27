@@ -1,0 +1,28 @@
+{{ .Chart.Name }} has been installed.
+
+Chart version: {{ .Chart.Version }}
+
+This chart deployed the following into the "infra" namespace:
+  - ApplicationLoadBalancer "alb-test"
+  - Gateway "agc-gateway" (class: {{ .Values.gatewayClassName }})
+  - FrontendTLSPolicy "mtls-policy" (mTLS on the HTTPS listener)
+  - HTTPRoute "route-keycloak" -> keycloak.identity:8080
+
+Gateway listeners:
+  - HTTP  :80   (all namespaces)
+  - HTTPS :443  (all namespaces, TLS termination via gateway-tls-secret)
+
+Identity provider hostname: {{ .Values.identityProviderHostname }}
+
+Get the Gateway external IP:
+
+  kubectl get gateway agc-gateway -n infra -o jsonpath='{.status.addresses[0].value}'
+
+Verify the ALB is provisioned:
+
+  kubectl get applicationloadbalancer alb-test -n infra
+
+To learn more about this release:
+
+  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}

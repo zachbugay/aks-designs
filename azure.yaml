@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: aks-designs
+infra:
+  provider: terraform
+  module: main
+hooks:
+  postprovision:
+    run: pwsh -NoLogo -NoProfile -File ./hooks/postprovision.ps1
+  postdeploy:
+    run: pwsh -NoLogo -NoProfile -File ./hooks/postdeploy.ps1
+  postdown:
+    run: pwsh -NoLogo -NoProfile -File ./hooks/postdown.ps1
+services:
+  argocd:
+    host: aks
+    resourceGroup: ${AKS_RESOURCE_GROUP}
+    resourceName: ${AZURE_AKS_CLUSTER_NAME}
+    k8s:
+      helm:
+        repositories:
+          - name: argo
+            url: https://argoproj.github.io/argo-helm
+        releases:
+          - name: argocd
+            chart: argo/argo-cd
+            version: 9.4.15
+            namespace: argocd

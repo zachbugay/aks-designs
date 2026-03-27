@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.reactApp.name }}
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.reactApp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.reactApp.replicas }}
+  selector:
+    matchLabels:
+      {{- include "tenant.reactApp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tenant.reactApp.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Values.reactApp.name }}
+          image: "{{ .Values.acrName }}.azurecr.io/{{ .Values.reactApp.image }}:{{ .Values.reactApp.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.reactApp.port }}
+          env:
+            - name: KEYCLOAK_URL
+              value: "https://{{ .Values.identityProviderHostname }}"
+            - name: KEYCLOAK_REALM
+              value: {{ .Values.tenantName | quote }}
+            - name: KEYCLOAK_CLIENT_ID
+              value: "react-app"
+            - name: API_BASE_URL
+              value: "https://{{ .Values.appHostname }}"
+          resources:
+            {{- toYaml .Values.reactApp.resources | nindent 12 }}

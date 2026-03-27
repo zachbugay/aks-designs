@@ -1,0 +1,22 @@
+apiVersion: alb.networking.azure.io/v1
+kind: FrontendTLSPolicy
+metadata:
+  name: mtls-policy
+  namespace: infra
+  labels:
+    {{- include "gateway.tlsPolicy.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: agc-gateway
+    namespace: infra
+    sectionNames:
+    - https
+  default:
+    verify:
+      caCertificateRef:
+        name: ca.bundle
+        group: ""
+        kind: Secret
+        namespace: infra

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: identity
+description: Identity services - Keycloak and Postgres
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

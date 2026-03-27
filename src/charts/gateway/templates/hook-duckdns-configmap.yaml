@@ -1,0 +1,15 @@
+{{- if .Values.duckdns.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: duckdns-update-script
+  namespace: infra
+  labels:
+    {{- include "gateway.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+data:
+  update-duckdns.sh: |
+    {{- .Files.Get "scripts/update-duckdns.sh" | nindent 4 }}
+{{- end }}

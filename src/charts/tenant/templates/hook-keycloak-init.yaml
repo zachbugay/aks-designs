@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-init-{{ .Values.tenantName }}
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave-timeout: "300"
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        {{- include "tenant.labels" . | nindent 8 }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: keycloak-init
+          image: curlimages/curl:latest
+          command: ["/bin/sh", "/scripts/initialize-keycloak-realm.sh"]
+          env:
+            - name: REALM_NAME
+              value: {{ .Values.tenantName | quote }}
+            - name: APP_HOSTNAME
+              value: {{ .Values.appHostname | quote }}
+            - name: KEYCLOAK_URL
+              value: "http://keycloak.identity.svc.cluster.local:8080"
+            - name: ADMIN_USER
+              value: "admin"
+            - name: ADMIN_PASSWORD
+              value: "admin"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: keycloak-init-script
+            defaultMode: 0755

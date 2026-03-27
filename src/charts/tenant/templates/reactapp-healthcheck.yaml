@@ -1,0 +1,24 @@
+apiVersion: alb.networking.azure.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: {{ .Values.reactApp.name }}-health-check
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.reactApp.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    group: ""
+    kind: Service
+    name: {{ .Values.reactApp.name }}
+    namespace: {{ .Values.tenantName }}
+  default:
+    port: {{ .Values.reactApp.port }}
+    http:
+      path: {{ .Values.reactApp.healthCheck.path }}
+      match:
+        statusCodes:
+          - start: 200
+            end: 299
+    interval: {{ .Values.reactApp.healthCheck.interval }}
+    timeout: {{ .Values.reactApp.healthCheck.timeout }}
+    unhealthyThreshold: {{ .Values.reactApp.healthCheck.unhealthyThreshold }}

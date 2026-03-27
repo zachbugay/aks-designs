@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.spec.source.repoURL }}
+    path: src/charts/gateway
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      valuesObject:
+        aksLbSubnetId: {{ .Values.gateway.aksLbSubnetId | quote }}
+        identityProviderHostname: {{ .Values.gateway.identityProviderHostname | quote }}
+        duckdns:
+          enabled: {{ .Values.gateway.duckdns.enabled }}
+          hostnames:
+            {{- toYaml .Values.gateway.duckdns.hostnames | nindent 12 }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,129 @@
+# ---------------------------------------------------------------
+# CiliumNetworkPolicy — L3/L4 allow rules
+#
+# These policies work alongside the Kubernetes NetworkPolicy
+# deny-all foundation (network-policy.yaml).  Cilium unions
+# allow rules from both policy types, so each rule below opens
+# the minimum L4 surface each workload requires.
+#
+# L7 HTTP enforcement is handled by Istio AuthorizationPolicy.
+#
+# Prerequisites:
+#   - Azure CNI powered by Cilium (network_dataplane = "cilium")
+#   - Advanced Container Networking Services (ACNS) enabled
+#     with advanced_network_policies = "FQDN"
+# ---------------------------------------------------------------
+
+# 0. Istio sidecar — allow control plane and health probes
+#
+#    Every pod with an Istio sidecar needs:
+#      Ingress: 15021 (health probes from kubelet), 15090 (Envoy metrics)
+#      Egress:  15012 (xDS from istiod in aks-istio-system)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: istio-sidecar
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector: {}
+  ingress:
+    - toPorts:
+        - ports:
+            - port: "15021"
+              protocol: TCP
+            - port: "15090"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": aks-istio-system
+            "k8s:app": istiod
+      toPorts:
+        - ports:
+            - port: "15012"
+              protocol: TCP
+---
+# 1. Service API — ingress on port 8080
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: service-ingress
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  ingress:
+    - toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# 2. Service API — egress to Keycloak (JWT validation)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: service-egress-keycloak
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": identity
+            "k8s:app.kubernetes.io/name": keycloak
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# 3. React App — ingress on port 8080
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: reactapp-ingress
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+  ingress:
+    - toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# 4. keycloak-init Job — egress to Keycloak (realm bootstrapping)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: keycloak-init-egress
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: Exists
+      - key: app.kubernetes.io/name
+        operator: DoesNotExist
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": identity
+            "k8s:app.kubernetes.io/name": keycloak
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

@@ -1,0 +1,12 @@
+{{- if .Values.duckdns.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: duckdns-update
+  namespace: infra
+  labels:
+    {{- include "gateway.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+{{- end }}

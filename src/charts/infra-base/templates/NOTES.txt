@@ -1,0 +1,27 @@
+{{ .Chart.Name }} has been installed.
+
+Chart version: {{ .Chart.Version }}
+
+This chart deployed the following into the "{{ .Values.namespace }}" namespace:
+  - SecretProviderClass "kv-tls-secrets" (Azure Key Vault CSI driver)
+  - Deployment "secrets-sync" (mounts secrets to trigger CSI sync)
+
+Key Vault:  {{ .Values.keyVaultName }}
+Tenant ID:  {{ .Values.tenantId }}
+
+Synced Kubernetes secrets:
+  - ca.bundle        (Opaque, contains ca.crt)
+  - gateway-tls-secret (kubernetes.io/tls, contains tls.crt and tls.key)
+
+Verify the secrets-sync pod is running:
+
+  kubectl get pods -n {{ .Values.namespace }} -l app.kubernetes.io/name=secrets-sync
+
+Verify the synced secrets exist:
+
+  kubectl get secret ca.bundle gateway-tls-secret -n {{ .Values.namespace }}
+
+To learn more about this release:
+
+  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}

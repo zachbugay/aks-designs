@@ -1,0 +1,49 @@
+tenantName: ""
+acrName: ""
+appHostname: ""
+identityProviderHostname: ""
+istioRevision: "asm-1-28"
+
+gateway:
+  name: agc-gateway
+  namespace: infra
+
+service:
+  name: bugay-service-example
+  image: bugay-service-example
+  tag: latest
+  replicas: 1
+  port: 8080
+  env:
+    aspnetcoreEnvironment: Production
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  healthCheck:
+    path: /healthz
+    interval: 5s
+    timeout: 3s
+    unhealthyThreshold: 2
+
+reactApp:
+  name: bugay-reactapp-example
+  image: bugay-reactapp-example
+  tag: latest
+  replicas: 1
+  port: 8080
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  healthCheck:
+    path: /healthz
+    interval: 5s
+    timeout: 3s
+    unhealthyThreshold: 2

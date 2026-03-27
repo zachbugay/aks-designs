@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-base
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.spec.source.repoURL }}
+    path: src/charts/infra-base
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      valuesObject:
+        kubeletIdentityClientId: {{ .Values.infraBase.kubeletIdentityClientId | quote }}
+        keyVaultName: {{ .Values.infraBase.keyVaultName | quote }}
+        tenantId: {{ .Values.infraBase.tenantId | quote }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

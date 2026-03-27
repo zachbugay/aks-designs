@@ -1,0 +1,38 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: route-{{ .Values.tenantName }}
+  namespace: {{ .Values.gateway.namespace }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+  hostnames:
+    - {{ .Values.appHostname | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /weatherforecast
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ .Values.service.name }}
+          namespace: {{ .Values.tenantName }}
+          port: {{ .Values.service.port }}
+          weight: 1
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ .Values.reactApp.name }}
+          namespace: {{ .Values.tenantName }}
+          port: {{ .Values.reactApp.port }}
+          weight: 1

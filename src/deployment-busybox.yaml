@@ -1,0 +1,47 @@
+# Used to debug and use some tools from within the cluster. 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: busybox
+  name: deployment-busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+  #     azure.workload.identity/use: "true"
+      name: deployment-busybox
+      namespace: default
+    spec:
+      # serviceAccountName: workload-identity-sa
+      nodeSelector:
+        kubernetes.io/os: linux
+      containers:
+        - name: busybox 
+          image: busybox
+          command: ["sh", "-c", "while true; do sleep 3600; done"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          # volumeMounts:
+          # - name: azurefile
+          #   mountPath: "/mnt/azure"
+          #   readOnly: false
+      # volumes:
+      # - name: azurefile
+      #   persistentVolumeClaim:
+      #     claimName: azurefile-pvc
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate

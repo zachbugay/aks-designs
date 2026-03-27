@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "identity.keycloak.labels" . | nindent 4 }}
+spec:
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: http
+      name: http
+  selector:
+    {{- include "identity.keycloak.selectorLabels" . | nindent 4 }}
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-discovery
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "identity.keycloak.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "identity.keycloak.selectorLabels" . | nindent 4 }}
+  clusterIP: None
+  type: ClusterIP

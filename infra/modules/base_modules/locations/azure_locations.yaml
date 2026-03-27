@@ -1,0 +1,462 @@
+locations:
+  - DisplayName: Asia
+    Name: asia
+    PairedRegion: null
+    RegionalDisplayName: Asia
+  - DisplayName: Asia Pacific
+    Name: asiapacific
+    PairedRegion: null
+    RegionalDisplayName: Asia Pacific
+  - DisplayName: Australia
+    Name: australia
+    PairedRegion: null
+    RegionalDisplayName: Australia
+  - DisplayName: Australia Central
+    Name: australiacentral
+    PairedRegion: australiacentral2
+    RegionalDisplayName: (Asia Pacific) Australia Central
+    ShortName: ACL
+  - DisplayName: Australia Central 2
+    Name: australiacentral2
+    PairedRegion: australiacentral
+    RegionalDisplayName: (Asia Pacific) Australia Central 2
+    ShortName: ACL2
+  - DisplayName: Australia East
+    Name: australiaeast
+    PairedRegion: australiasoutheast
+    RegionalDisplayName: (Asia Pacific) Australia East
+    ShortName: AE
+  - DisplayName: Australia Southeast
+    Name: australiasoutheast
+    PairedRegion: australiaeast
+    RegionalDisplayName: (Asia Pacific) Australia Southeast
+    ShortName: ASE
+  - DisplayName: Austria East
+    Name: austriaeast
+    PairedRegion: null
+    RegionalDisplayName: (Europe) Austria East
+  - DisplayName: Belgium Central
+    Name: belgiumcentral
+    PairedRegion: null
+    RegionalDisplayName: (Europe) Belgium Central
+  - DisplayName: Brazil
+    Name: brazil
+    PairedRegion: null
+    RegionalDisplayName: Brazil
+  - DisplayName: Brazil South
+    Name: brazilsouth
+    PairedRegion: southcentralus
+    RegionalDisplayName: (South America) Brazil South
+    ShortName: BRS
+  - DisplayName: Brazil Southeast
+    Name: brazilsoutheast
+    PairedRegion: brazilsouth
+    RegionalDisplayName: (South America) Brazil Southeast
+    ShortName: BSE
+  - DisplayName: Canada
+    Name: canada
+    PairedRegion: null
+    RegionalDisplayName: Canada
+  - DisplayName: Canada Central
+    Name: canadacentral
+    PairedRegion: canadaeast
+    RegionalDisplayName: (Canada) Canada Central
+    ShortName: CNC
+  - DisplayName: Canada East
+    Name: canadaeast
+    PairedRegion: canadacentral
+    RegionalDisplayName: (Canada) Canada East
+    ShortName: CNE
+  - DisplayName: Central India
+    Name: centralindia
+    PairedRegion: southindia
+    RegionalDisplayName: (Asia Pacific) Central India
+    ShortName: INC
+  - DisplayName: Central US
+    Name: centralus
+    PairedRegion: eastus2
+    RegionalDisplayName: (US) Central US
+    ShortName: CUS
+  - DisplayName: Central US (Stage)
+    Name: centralusstage
+    PairedRegion: null
+    RegionalDisplayName: (US) Central US (Stage)
+  - DisplayName: Central US EUAP
+    Name: centraluseuap
+    PairedRegion: eastus2euap
+    RegionalDisplayName: (US) Central US EUAP
+    ShortName: CCY
+  - DisplayName: Chile Central
+    Name: chilecentral
+    PairedRegion: null
+    RegionalDisplayName: (South America) Chile Central
+    ShortName: CLC
+  - DisplayName: East Asia
+    Name: eastasia
+    PairedRegion: southeastasia
+    RegionalDisplayName: (Asia Pacific) East Asia
+    ShortName: EA
+  - DisplayName: East Asia (Stage)
+    Name: eastasiastage
+    PairedRegion: null
+    RegionalDisplayName: (Asia Pacific) East Asia (Stage)
+  - DisplayName: East US
+    Name: eastus
+    PairedRegion: westus
+    RegionalDisplayName: (US) East US
+    ShortName: EUS
+  - DisplayName: East US (Stage)
+    Name: eastusstage
+    PairedRegion: null
+    RegionalDisplayName: (US) East US (Stage)
+  - DisplayName: East US 2
+    Name: eastus2
+    PairedRegion: centralus
+    RegionalDisplayName: (US) East US 2
+    ShortName: EUS2
+  - DisplayName: East US 2 (Stage)
+    Name: eastus2stage
+    PairedRegion: null
+    RegionalDisplayName: (US) East US 2 (Stage)
+  - DisplayName: East US 2 EUAP
+    Name: eastus2euap
+    PairedRegion: centraluseuap
+    RegionalDisplayName: (US) East US 2 EUAP
+    ShortName: ECY
+  - DisplayName: East US STG
+    Name: eastusstg
+    PairedRegion: southcentralusstg
+    RegionalDisplayName: (US) East US STG
+  - DisplayName: Europe
+    Name: europe
+    PairedRegion: null
+    RegionalDisplayName: Europe
+  - DisplayName: France
+    Name: france
+    PairedRegion: null
+    RegionalDisplayName: France
+  - DisplayName: France Central
+    Name: francecentral
+    PairedRegion: francesouth
+    RegionalDisplayName: (Europe) France Central
+    ShortName: FRC
+  - DisplayName: France South
+    Name: francesouth
+    PairedRegion: francecentral
+    RegionalDisplayName: (Europe) France South
+    ShortName: FRS
+  - DisplayName: Germany
+    Name: germany
+    PairedRegion: null
+    RegionalDisplayName: Germany
+  - DisplayName: Germany North
+    Name: germanynorth
+    PairedRegion: germanywestcentral
+    RegionalDisplayName: (Europe) Germany North
+    ShortName: GN
+  - DisplayName: Germany West Central
+    Name: germanywestcentral
+    PairedRegion: germanynorth
+    RegionalDisplayName: (Europe) Germany West Central
+    ShortName: GWC
+  - DisplayName: Global
+    Name: global
+    PairedRegion: null
+    RegionalDisplayName: Global
+  - DisplayName: India
+    Name: india
+    PairedRegion: null
+    RegionalDisplayName: India
+  - DisplayName: Indonesia
+    Name: indonesia
+    PairedRegion: null
+    RegionalDisplayName: Indonesia
+  - DisplayName: Indonesia Central
+    Name: indonesiacentral
+    PairedRegion: null
+    RegionalDisplayName: (Asia Pacific) Indonesia Central
+    ShortName: IDC
+  - DisplayName: Israel
+    Name: israel
+    PairedRegion: null
+    RegionalDisplayName: Israel
+  - DisplayName: Israel Central
+    Name: israelcentral
+    PairedRegion: null
+    RegionalDisplayName: (Middle East) Israel Central
+    ShortName: ILC
+  - DisplayName: Italy
+    Name: italy
+    PairedRegion: null
+    RegionalDisplayName: Italy
+  - DisplayName: Italy North
+    Name: italynorth
+    PairedRegion: null
+    RegionalDisplayName: (Europe) Italy North
+    ShortName: ITN
+  - DisplayName: Japan
+    Name: japan
+    PairedRegion: null
+    RegionalDisplayName: Japan
+  - DisplayName: Japan East
+    Name: japaneast
+    PairedRegion: japanwest
+    RegionalDisplayName: (Asia Pacific) Japan East
+    ShortName: JPE
+  - DisplayName: Japan West
+    Name: japanwest
+    PairedRegion: japaneast
+    RegionalDisplayName: (Asia Pacific) Japan West
+    ShortName: JPW
+  - DisplayName: Jio India Central
+    Name: jioindiacentral
+    PairedRegion: jioindiawest
+    RegionalDisplayName: (Asia Pacific) Jio India Central
+    ShortName: JIC
+  - DisplayName: Jio India West
+    Name: jioindiawest
+    PairedRegion: jioindiacentral
+    RegionalDisplayName: (Asia Pacific) Jio India West
+    ShortName: JIW
+  - DisplayName: Korea
+    Name: korea
+    PairedRegion: null
+    RegionalDisplayName: Korea
+  - DisplayName: Korea Central
+    Name: koreacentral
+    PairedRegion: koreasouth
+    RegionalDisplayName: (Asia Pacific) Korea Central
+    ShortName: KRC
+  - DisplayName: Korea South
+    Name: koreasouth
+    PairedRegion: koreacentral
+    RegionalDisplayName: (Asia Pacific) Korea South
+    ShortName: KRS
+  - DisplayName: Malaysia
+    Name: malaysia
+    PairedRegion: null
+    RegionalDisplayName: Malaysia
+  - DisplayName: Malaysia West
+    Name: malaysiawest
+    PairedRegion: null
+    RegionalDisplayName: (Asia Pacific) Malaysia West
+    ShortName: MYW
+  - DisplayName: Mexico
+    Name: mexico
+    PairedRegion: null
+    RegionalDisplayName: Mexico
+  - DisplayName: Mexico Central
+    Name: mexicocentral
+    PairedRegion: null
+    RegionalDisplayName: (Mexico) Mexico Central
+    ShortName: MXC
+  - DisplayName: New Zealand
+    Name: newzealand
+    PairedRegion: null
+    RegionalDisplayName: New Zealand
+  - DisplayName: New Zealand North
+    Name: newzealandnorth
+    PairedRegion: null
+    RegionalDisplayName: (Asia Pacific) New Zealand North
+    ShortName: NZN
+  - DisplayName: North Central US
+    Name: northcentralus
+    PairedRegion: southcentralus
+    RegionalDisplayName: (US) North Central US
+    ShortName: NCUS
+  - DisplayName: North Central US (Stage)
+    Name: northcentralusstage
+    PairedRegion: null
+    RegionalDisplayName: (US) North Central US (Stage)
+  - DisplayName: North Europe
+    Name: northeurope
+    PairedRegion: westeurope
+    RegionalDisplayName: (Europe) North Europe
+    ShortName: NE
+  - DisplayName: Norway
+    Name: norway
+    PairedRegion: null
+    RegionalDisplayName: Norway
+  - DisplayName: Norway East
+    Name: norwayeast
+    PairedRegion: norwaywest
+    RegionalDisplayName: (Europe) Norway East
+    ShortName: NWE
+  - DisplayName: Norway West
+    Name: norwaywest
+    PairedRegion: norwayeast
+    RegionalDisplayName: (Europe) Norway West
+    ShortName: NWW
+  - DisplayName: Poland
+    Name: poland
+    PairedRegion: null
+    RegionalDisplayName: Poland
+  - DisplayName: Poland Central
+    Name: polandcentral
+    PairedRegion: null
+    RegionalDisplayName: (Europe) Poland Central
+    ShortName: PLC
+  - DisplayName: Qatar
+    Name: qatar
+    PairedRegion: null
+    RegionalDisplayName: Qatar
+  - DisplayName: Qatar Central
+    Name: qatarcentral
+    PairedRegion: null
+    RegionalDisplayName: (Middle East) Qatar Central
+    ShortName: QAC
+  - DisplayName: Singapore
+    Name: singapore
+    PairedRegion: null
+    RegionalDisplayName: Singapore
+  - DisplayName: South Africa
+    Name: southafrica
+    PairedRegion: null
+    RegionalDisplayName: South Africa
+  - DisplayName: South Africa North
+    Name: southafricanorth
+    PairedRegion: southafricawest
+    RegionalDisplayName: (Africa) South Africa North
+    ShortName: SAN
+  - DisplayName: South Africa West
+    Name: southafricawest
+    PairedRegion: southafricanorth
+    RegionalDisplayName: (Africa) South Africa West
+    ShortName: SAW
+  - DisplayName: South Central US
+    Name: southcentralus
+    PairedRegion: northcentralus
+    RegionalDisplayName: (US) South Central US
+    ShortName: SCUS
+  - DisplayName: South Central US (Stage)
+    Name: southcentralusstage
+    PairedRegion: null
+    RegionalDisplayName: (US) South Central US (Stage)
+  - DisplayName: South Central US STG
+    Name: southcentralusstg
+    PairedRegion: eastusstg
+    RegionalDisplayName: (US) South Central US STG
+  - DisplayName: South India
+    Name: southindia
+    PairedRegion: centralindia
+    RegionalDisplayName: (Asia Pacific) South India
+    ShortName: INS
+  - DisplayName: Southeast Asia
+    Name: southeastasia
+    PairedRegion: eastasia
+    RegionalDisplayName: (Asia Pacific) Southeast Asia
+    ShortName: SEA
+  - DisplayName: Southeast Asia (Stage)
+    Name: southeastasiastage
+    PairedRegion: null
+    RegionalDisplayName: (Asia Pacific) Southeast Asia (Stage)
+  - DisplayName: Spain
+    Name: spain
+    PairedRegion: null
+    RegionalDisplayName: Spain
+  - DisplayName: Spain Central
+    Name: spaincentral
+    PairedRegion: null
+    RegionalDisplayName: (Europe) Spain Central
+    ShortName: SPC
+  - DisplayName: Sweden
+    Name: sweden
+    PairedRegion: null
+    RegionalDisplayName: Sweden
+  - DisplayName: Sweden Central
+    Name: swedencentral
+    PairedRegion: swedensouth
+    RegionalDisplayName: (Europe) Sweden Central
+    ShortName: SDC
+  - DisplayName: Switzerland
+    Name: switzerland
+    PairedRegion: null
+    RegionalDisplayName: Switzerland
+  - DisplayName: Switzerland North
+    Name: switzerlandnorth
+    PairedRegion: switzerlandwest
+    RegionalDisplayName: (Europe) Switzerland North
+    ShortName: SZN
+  - DisplayName: Switzerland West
+    Name: switzerlandwest
+    PairedRegion: switzerlandnorth
+    RegionalDisplayName: (Europe) Switzerland West
+    ShortName: SZW
+  - DisplayName: Taiwan
+    Name: taiwan
+    PairedRegion: null
+    RegionalDisplayName: Taiwan
+  - DisplayName: UAE Central
+    Name: uaecentral
+    PairedRegion: uaenorth
+    RegionalDisplayName: (Middle East) UAE Central
+    ShortName: UAC
+  - DisplayName: UAE North
+    Name: uaenorth
+    PairedRegion: uaecentral
+    RegionalDisplayName: (Middle East) UAE North
+    ShortName: UAN
+  - DisplayName: UK South
+    Name: uksouth
+    PairedRegion: ukwest
+    RegionalDisplayName: (UK) UK South
+    ShortName: UKS
+  - DisplayName: UK West
+    Name: ukwest
+    PairedRegion: uksouth
+    RegionalDisplayName: (UK) UK West
+    ShortName: UKW
+  - DisplayName: United Arab Emirates
+    Name: uae
+    PairedRegion: null
+    RegionalDisplayName: United Arab Emirates
+  - DisplayName: United Kingdom
+    Name: uk
+    PairedRegion: null
+    RegionalDisplayName: United Kingdom
+  - DisplayName: United States
+    Name: unitedstates
+    PairedRegion: null
+    RegionalDisplayName: United States
+  - DisplayName: United States EUAP
+    Name: unitedstateseuap
+    PairedRegion: null
+    RegionalDisplayName: United States EUAP
+  - DisplayName: West Central US
+    Name: westcentralus
+    PairedRegion: westus2
+    RegionalDisplayName: (US) West Central US
+    ShortName: WCUS
+  - DisplayName: West Europe
+    Name: westeurope
+    PairedRegion: northeurope
+    RegionalDisplayName: (Europe) West Europe
+    ShortName: WE
+  - DisplayName: West India
+    Name: westindia
+    PairedRegion: southindia
+    RegionalDisplayName: (Asia Pacific) West India
+    ShortName: INW
+  - DisplayName: West US
+    Name: westus
+    PairedRegion: eastus
+    RegionalDisplayName: (US) West US
+    ShortName: WUS
+  - DisplayName: West US (Stage)
+    Name: westusstage
+    PairedRegion: null
+    RegionalDisplayName: (US) West US (Stage)
+  - DisplayName: West US 2
+    Name: westus2
+    PairedRegion: westcentralus
+    RegionalDisplayName: (US) West US 2
+    ShortName: WUS2
+  - DisplayName: West US 2 (Stage)
+    Name: westus2stage
+    PairedRegion: null
+    RegionalDisplayName: (US) West US 2 (Stage)
+  - DisplayName: West US 3
+    Name: westus3
+    PairedRegion: eastus
+    RegionalDisplayName: (US) West US 3
+    ShortName: WUS3

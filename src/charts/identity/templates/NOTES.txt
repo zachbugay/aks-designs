@@ -1,0 +1,30 @@
+{{ .Chart.Name }} has been installed.
+
+Chart version: {{ .Chart.Version }}
+
+This chart deployed the following into the "{{ .Values.namespace }}" namespace:
+  - StatefulSet "keycloak" ({{ .Values.keycloak.replicas }} replicas, {{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }})
+  - Service "keycloak" (ClusterIP, port 8080)
+  - Service "keycloak-discovery" (headless, for JGroups cluster discovery)
+  - Deployment "postgres" ({{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }})
+  - Service "postgres" (ClusterIP, port 5432)
+  - ReferenceGrant (allows HTTPRoutes from "{{ .Values.infraNamespace }}" to reach services in "{{ .Values.namespace }}")
+
+Verify Keycloak is running:
+
+  kubectl get pods -n {{ .Values.namespace }} -l app.kubernetes.io/name=keycloak
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=keycloak -n {{ .Values.namespace }} --timeout=600s
+
+Verify Postgres is running:
+
+  kubectl get pods -n {{ .Values.namespace }} -l app.kubernetes.io/name=postgres
+
+Access Keycloak locally via port-forward:
+
+  kubectl port-forward svc/keycloak 8080:8080 -n {{ .Values.namespace }}
+  # Then open http://localhost:8080
+
+To learn more about this release:
+
+  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}

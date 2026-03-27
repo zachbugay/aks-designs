@@ -1,0 +1,4 @@
+tenantName: "zach-a"
+acrName: "devcrentappspons001"
+appHostname: "zach-a.duckdns.org"
+identityProviderHostname: "zach-keycloak.duckdns.org"

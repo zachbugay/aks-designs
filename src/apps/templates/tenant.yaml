@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tenants
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: {{ .Values.spec.source.repoURL }}
+        revision: {{ .Values.spec.source.targetRevision }}
+        files:
+          - path: "src/tenants/*/values.yaml"
+  template:
+    metadata:
+      name: "tenant-{{`{{tenantName}}`}}"
+      namespace: argocd
+      annotations:
+        argocd.argoproj.io/sync-wave: "3"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: {{ .Values.spec.source.repoURL }}
+        path: src/charts/tenant
+        targetRevision: {{ .Values.spec.source.targetRevision }}
+        helm:
+          parameters:
+            - name: tenantName
+              value: "{{`{{tenantName}}`}}"
+            - name: acrName
+              value: "{{`{{acrName}}`}}"
+            - name: appHostname
+              value: "{{`{{appHostname}}`}}"
+            - name: identityProviderHostname
+              value: "{{`{{identityProviderHostname}}`}}"
+      destination:
+        server: {{ .Values.spec.destination.server }}
+        namespace: "{{`{{tenantName}}`}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+        retry:
+          limit: 3
+          backoff:
+            duration: 10s
+            maxDuration: 3m
+            factor: 2

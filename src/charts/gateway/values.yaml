@@ -1,0 +1,7 @@
+aksLbSubnetId: ""
+gatewayClassName: azure-alb-external
+identityProviderHostname: ""
+
+duckdns:
+  enabled: false
+  hostnames: []
