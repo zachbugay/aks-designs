@@ -10,31 +10,39 @@ An Azure Kubernetes Service reference architecture deployed end-to-end with `azd
 
 `azd up` provisions infrastructure, installs ArgoCD, and bootstraps a GitOps pipeline:
 
-```PowerShell
-$env:PYTHONUTF8 = "1"
+```
 azd provision
   └── Terraform creates AKS, ACR, Key Vault, VNets, firewall, etc.
 
 postprovision.ps1
   ├── Gets AKS credentials
-  ├── Initializes TLS certificates in Key Vault
-  └── Builds and pushes container images to ACR
+  ├── Initializes TLS certificates and uploads them to Key Vault
+  ├── Stores the DuckDNS token in Key Vault
+  ├── Builds and pushes container images to ACR (skips if unchanged)
+  └── Updates tenant values.yaml files with the current ACR name
 
 azd deploy
   └── Installs ArgoCD (argo/argo-cd v9.4.15) into the argocd namespace
 
 postdeploy.ps1
-  ├── Creates a root ArgoCD Application pointing to src/apps in this Git repo
-  ├── ArgoCD syncs the App of Apps chart, which creates 4 child Applications
-  ├── Each child Application points to a chart in src/charts/ (GitOps from this repo)
-  ├── Sync waves enforce ordering: infra-base (1) → gateway + identity (2) → tenant (3)
-  ├── A PostSync hook on infra-base verifies Key Vault secrets are synced before wave 2 starts
-  ├── Waits for all applications to be Healthy and Synced
-  ├── Gets the Gateway external IP and updates DuckDNS records
-  └── Initializes the Keycloak realm, clients, and test user
+  └── Creates a root ArgoCD Application pointing to src/apps in this Git repo
+
+ArgoCD takes over:
+  ├── Syncs the App of Apps chart, which creates 3 child Applications
+  │   and 1 ApplicationSet (tenants)
+  ├── Sync waves enforce ordering: infra-base (1) → gateway + identity (2) → tenants (3)
+  ├── A PostSync hook on infra-base verifies Key Vault secrets are synced
+  │   before wave 2 starts
+  ├── A PostSync hook on gateway updates DuckDNS records with the
+  │   Gateway external IP
+  └── A PostSync hook on each tenant initializes its Keycloak realm and clients
 ```
 
 After the initial bootstrap, ArgoCD continuously watches this Git repository. Pushing chart changes to `main` triggers automatic sync, no manual deployment needed.
+
+### Tenant discovery
+
+Tenants are managed as files, not ArgoCD Application manifests. An [ApplicationSet](https://argo-cd.readthedocs.io/en/stable/user-guide/application-set/) with a **Git file generator** scans `src/tenants/*/values.yaml` at each sync. To add or remove a tenant, create or delete a values file with `New-Tenant.ps1`, commit, and push, ArgoCD handles the rest.
 
 ## Architecture
 
@@ -42,21 +50,24 @@ Deployment is organized into four Helm charts, managed by ArgoCD via sync waves:
 
 | Wave | Chart | Namespace | Contents |
 |---|---|---|---|
-| 1 | `infra-base` | `infra` | SecretProviderClass, secrets-sync, PostSync secrets verification hook |
-| 2 | `gateway` | `infra` | ApplicationLoadBalancer, Gateway, FrontendTLSPolicy, Keycloak HTTPRoute |
-| 2 | `identity` | `identity` | Keycloak StatefulSet, Postgres, ReferenceGrant |
-| 3 | `tenant` | `<tenant-name>` | React App, API Service, HealthCheckPolicies, HTTPRoute, ReferenceGrant |
+| 1 | `infra-base` | `infra` | SecretProviderClass, secrets-sync Deployment, PostSync secrets verification hook |
+| 2 | `gateway` | `infra` | ApplicationLoadBalancer, Gateway, FrontendTLSPolicy, Keycloak HTTPRoute, PostSync DuckDNS update hook |
+| 2 | `identity` | `identity` | Keycloak StatefulSet, Postgres Deployment, ReferenceGrant |
+| 3 | `tenant` (ApplicationSet) | `<tenant-name>` | Namespace (with Istio sidecar injection), NetworkPolicy (deny-all + DNS), CiliumNetworkPolicy (L3/L4), Istio AuthorizationPolicy (L7), React App, API Service, HealthCheckPolicies, HTTPRoute, ReferenceGrant, PostSync Keycloak realm init hook |
 
 **Why this order matters:** `infra-base` must complete before `gateway` because it creates the `SecretProviderClass` and `secrets-sync` pod that pull TLS certificates from Azure Key Vault into Kubernetes Secrets (`gateway-tls-secret` and `ca.bundle`). A PostSync hook verifies these secrets exist before ArgoCD proceeds to wave 2. The `gateway` chart references those Secrets for HTTPS termination and mTLS.
+
+**Zero-trust tenant networking:** Each tenant namespace enforces defense in depth. Kubernetes NetworkPolicy establishes a deny-all baseline (ingress and egress) with only DNS allowed. CiliumNetworkPolicy selectively opens L3/L4 ports for each workload (API ingress, Keycloak egress for JWT validation, Istio control plane). Istio AuthorizationPolicy restricts L7 HTTP methods and paths. Cross-tenant traffic is denied at all layers.
 
 ## Prerequisites
 
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 - [Azure Developer CLI (`azd`)](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
-- [Terraform](https://developer.hashicorp.com/terraform/install)
+- [Terraform >= 1.14.5](https://developer.hashicorp.com/terraform/install)
 - [PowerShell 7.5+](https://learn.microsoft.com/PowerShell/scripting/install/installing-PowerShell)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/)
+- [OpenSSL](https://www.openssl.org/) (for TLS certificate generation)
 
 ## Setup
 
@@ -83,18 +94,27 @@ azd env set ADMIN_GROUP_OBJECT_IDS "<comma-separated Entra group object IDs>"
 azd env set ALERT_EMAIL "<your email>"
 
 # --- Application settings ---
-azd env set CUSTOMER_TENANT_NAMES "<space-separated tenant names, e.g. zach-a zach-b>"
-azd env set APP_HOSTNAME "<primary fqdn for certs, e.g. myapp.duckdns.org>"
 azd env set IDENTITY_PROVIDER_HOSTNAME "<fqdn for keycloak, e.g. mykeycloak.duckdns.org>"
 azd env set DUCKDNS_TOKEN "<your duckdns.org token>"
 ```
 
+Create tenant definitions (one values file per tenant under `src/tenants/`):
+
 ```PowerShell
-# Provision infrastructure and deploy the application
+./src/weather-app/New-Tenant.ps1 `
+    -TenantNames "zach-a", "zach-b" `
+    -AcrName "<your ACR name or placeholder>" `
+    -IdentityProviderHostname "<keycloak fqdn>"
+```
+
+Commit and push the tenant files, then provision and deploy:
+
+```PowerShell
+git add src/tenants/ && git commit -m "Add tenants" && git push
 azd up
 ```
 
-> **Important:** All chart changes must be pushed to `main` on GitHub before running `azd up`, because ArgoCD pulls from the remote Git repository, not your local working directory.
+> **Important:** All chart and tenant changes must be pushed to `main` on GitHub before running `azd up`, because ArgoCD pulls from the remote Git repository, not your local working directory.
 
 ## Environment Variables Reference
 
@@ -105,13 +125,13 @@ azd up
 | `AZURE_LOCATION` | Yes | Azure region (e.g., `westus3`) |
 | `AZURE_SUBSCRIPTION_ID` | Yes | Azure subscription ID |
 | `AZURE_TENANT_ID` | Yes | Azure tenant ID |
-| `AKS_NODE_POOL_VM_SIZE` | Yes | VM size for AKS node pool (e.g., `Standard_D2as_v7`) |
+| `AKS_NODE_POOL_VM_SIZE` | Yes | VM size for AKS node pool (e.g., `Standard_D4as_v7`) |
 | `ADMIN_GROUP_OBJECT_IDS` | Yes | Comma-separated Entra ID group object IDs for AKS admin access |
 | `ALERT_EMAIL` | Yes | Email address for AKS alert notifications |
-| `CUSTOMER_TENANT_NAMES` | Yes | Space-separated tenant identifiers — each is used as a Kubernetes namespace, ArgoCD Application name, and Keycloak realm name |
-| `APP_HOSTNAME` | Yes | Primary FQDN used for TLS certificate SAN generation |
-| `IDENTITY_PROVIDER_HOSTNAME` | Yes | FQDN for Keycloak |
-| `DUCKDNS_TOKEN` | Yes | DuckDNS API token |
+| `IDENTITY_PROVIDER_HOSTNAME` | Yes | FQDN for Keycloak (e.g., `mykeycloak.duckdns.org`) |
+| `DUCKDNS_TOKEN` | Yes | DuckDNS API token for automatic DNS record updates |
+
+> Tenant-specific settings (`tenantName`, `acrName`, `appHostname`, `identityProviderHostname`) are defined in each tenant's `src/tenants/<name>/values.yaml`, not as `azd` environment variables. The `postprovision` hook automatically updates `acrName` in tenant values files after provisioning.
 
 ## Accessing ArgoCD
 
@@ -136,48 +156,28 @@ azd down --force --purge
 
 ## Adding Additional Tenants
 
-To onboard additional tenants, add a new Application to the App of Apps chart in `src/apps/templates/` and push to Git. ArgoCD will automatically sync the new tenant.
+Run `New-Tenant.ps1` to create the tenant values file, then commit and push. The ArgoCD ApplicationSet detects the new file and deploys the tenant automatically, including the Keycloak realm init and DuckDNS update (via PostSync hooks).
 
-Alternatively, deploy manually:
-
-### 1. Deploy the tenant chart
+> **Note:** Terraform outputs like `ACR_NAME` and `IDENTITY_PROVIDER_HOSTNAME` are stored in `.azure/<env name>/.env` but are **not** automatically loaded into your shell environment. Open that file to look up the values you need, or source them first:
+>
+> ```PowerShell
+> # Load all azd env vars into the current shell
+> azd env get-values | ForEach-Object { if ($_ -match '^([^=]+)=(.*)$') { [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2].Trim('"')) } }
+> ```
 
 ```PowerShell
-helm upgrade --install tenant-zach-b src/charts/tenant `
-    --namespace zach-b --create-namespace `
-    --set tenantName=zach-b `
-    --set acrName=$env:ACR_NAME `
-    --set appHostname=zach-b.duckdns.org `
-    --set identityProviderHostname=$env:IDENTITY_PROVIDER_HOSTNAME `
-    --wait --timeout 5m
+./src/weather-app/New-Tenant.ps1 `
+    -TenantNames "zach-c" `
+    -AcrName $env:ACR_NAME `
+    -IdentityProviderHostname $env:IDENTITY_PROVIDER_HOSTNAME
+
+git add src/tenants/ && git commit -m "Add tenant zach-c" && git push
 ```
 
-This creates:
-- A `ReferenceGrant` allowing the gateway to route to services in the namespace
-- An `HTTPRoute` in the `infra` namespace routing `zach-b.duckdns.org` traffic
-- The API service and React app Deployments, Services, and HealthCheckPolicies
-
-### 2. Update TLS certificates
-
-If the new tenant uses a hostname not covered by the existing server certificate SANs, re-run `Initialize-Certs.ps1` with all hostnames. If all tenants share a wildcard domain already covered by the cert, no changes are needed.
-
-### 3. Update DuckDNS
+If the new tenant uses a hostname not covered by the existing server certificate SANs, re-run `Initialize-Certs.ps1` to regenerate and upload certificates (it auto-discovers hostnames from tenant values files):
 
 ```PowerShell
-$gatewayIp = & src/weather-app/Get-GatewayIpAddress.ps1
-
-& src/weather-app/Update-DuckDns.ps1 `
-    -Token $env:DUCKDNS_TOKEN `
-    -Hostnames "zach-b.duckdns.org" `
-    -IpAddress $gatewayIp
-```
-
-### 4. Create the Keycloak realm
-
-```PowerShell
-& src/weather-app/Initialize-KeycloakRealm.ps1 `
-    -RealmName zach-b `
-    -KeycloakBaseUrl "https://$env:IDENTITY_PROVIDER_HOSTNAME"
+& src/weather-app/Initialize-Certs.ps1
 ```
 
 ### Managing tenants
@@ -186,7 +186,7 @@ $gatewayIp = & src/weather-app/Get-GatewayIpAddress.ps1
 # List all ArgoCD-managed tenant applications
 kubectl get applications -n argocd | Select-String "tenant-"
 
-# Remove a tenant (if manually deployed)
-helm uninstall tenant-zach-b --namespace zach-b
-kubectl delete namespace zach-b
+# Remove a tenant, delete the values file, commit, and push
+Remove-Item -Recurse src/tenants/zach-c
+git add -A && git commit -m "Remove tenant zach-c" && git push
 ```
