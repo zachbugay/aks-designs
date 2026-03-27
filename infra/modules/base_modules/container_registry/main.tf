@@ -25,12 +25,10 @@ resource "azurecaf_name" "this" {
   resource_type = "azurerm_container_registry"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
-module "acr" {
-  source                  = "Azure/avm-res-containerregistry-registry/azurerm"
-  version                 = "0.5.1"
+resource "azurerm_container_registry" "this" {
   name                    = coalesce(var.custom_name, azurecaf_name.this.result)
   resource_group_name     = var.resource_group_name
   location                = module.locations.name

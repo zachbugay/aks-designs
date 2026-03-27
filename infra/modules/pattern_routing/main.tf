@@ -40,3 +40,10 @@ module "subnet_route_table_association" {
   subnet_id      = var.subnet_id
   route_table_id = module.route_table.id
 }
+
+module "additional_subnet_route_table_associations" {
+  source         = "../base_modules/subnet_route_table_association"
+  for_each       = var.additional_subnet_ids
+  subnet_id      = each.value
+  route_table_id = module.route_table.id
+}

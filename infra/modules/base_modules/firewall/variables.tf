@@ -71,7 +71,7 @@ variable "threat_intel_mode" {
 variable "zones" {
   description = "(Optional) A list of availability zones which to deploy the firewall in."
   type        = list(string)
-  default     = ["1", "2", "3", "4"]
+  default     = ["1", "2", "3"]
 }
 
 variable "ip_configuration_name" {

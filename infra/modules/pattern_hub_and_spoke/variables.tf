@@ -46,20 +46,18 @@ variable "dns_servers" {
 
 variable "firewall" {
   description = "(Optional) Whether or not to use an Azure Firewall."
-  type        = bool
-  default     = false
-}
-
-variable "firewall_sku_name" {
-  description = "(Optional) SKU name of the Firewall. Possible values are AZFW_Hub and AZFW_VNet. Changing this forces a new resource to be created."
-  type        = string
-  default     = "AZFW_Hub"
-}
-
-variable "firewall_sku_tier" {
-  description = "(Optional) SKU tier of the Firewall. Possible values are Premium, Standard and Basic."
-  type        = string
-  default     = "Basic"
+  type = object({
+    enabled       = bool
+    sku_tier      = string
+    sku_name      = string
+    default_rules = bool
+  })
+  default = {
+    enabled       = true
+    sku_tier      = "Standard"
+    sku_name      = "AZFW_VNet"
+    default_rules = true
+  }
 }
 
 variable "gateway" {
@@ -170,20 +168,28 @@ variable "address_space_spoke_aks" {
   default     = null
 }
 
+variable "enable_private_api_server" {
+  description = "(Optional) Whether or not the Kubernetes API Server should be privately accessible"
+  type        = bool
+  default     = false
+}
+
 variable "tenant_id" {
   description = "(Optional) Tenant ID for AKS"
   type        = string
   default     = null
 }
 
-variable "admin_group_object_ids" {
+variable "admin_object_ids" {
   description = "(Optional) Object ID of admin group for AKS."
   type        = list(string)
   default     = null
 }
 
 variable "authorized_ip_ranges" {
-  type = list(string)
+  description = "(Optional) List of IP Addresses that can publicly connect to a varitey of resources. Used for testing."
+  type        = list(string)
+  default     = null
 }
 
 variable "web_application_firewall" {
@@ -245,6 +251,7 @@ variable "alert_email" {
   type        = string
 }
 
+# TODO: Differentiate between AGW scoped to hub, and AGW scoped to the AKS spoke.
 variable "application_gateway" {
   description = "(Optional) Deploy an Application Gateway with WAF for inbound L7 traffic."
   type        = bool
@@ -263,6 +270,12 @@ variable "random_string" {
   default     = ""
 }
 
+variable "application_gateway_trusted_root_certificate_pem" {
+  description = "(Optional) PEM encoded root certificate that signs the backend TLS certificates presented by the in-cluster gateway. When null, the default trusted certificate authorities are used."
+  type        = string
+  default     = null
+}
+
 variable "application_gateway_for_containers" {
   description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
   type        = bool
@@ -273,4 +286,10 @@ variable "vm_size" {
   description = "VM Size for AKS node pools."
   type        = string
   default     = "Standard_D2as_v7"
+}
+
+variable "vpn_auth_types" {
+  description = "(Optional) The Point-to-Site authentication types to enable on the Virtual Network Gateway."
+  type        = list(string)
+  default     = ["AAD"]
 }

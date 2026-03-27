@@ -48,6 +48,12 @@ variable "subnet_id" {
   type        = string
 }
 
+variable "additional_subnet_ids" {
+  description = "(Optional) Additional Subnet IDs to associate with the same Route Table, keyed by a static name."
+  type        = map(string)
+  default     = {}
+}
+
 variable "tags" {
   description = "(Optional) A mapping of tags to assign to the resource."
   type        = map(string)

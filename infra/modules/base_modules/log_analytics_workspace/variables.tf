@@ -62,16 +62,27 @@ variable "daily_quota_gb" {
   default     = -1
 }
 
-variable "internet_ingestion_enabled" {
+variable "internet_ingestion_access_type" {
   description = "(Optional) Specifies whether or not ingestion from the Internet is enabled."
-  type        = bool
-  default     = true
+  type        = string
+  default     = "Enabled"
+
+  validation {
+    condition     = contains(["Enabled", "Disabled", "SecuredByPerimeter"], var.internet_ingestion_access_type)
+    error_message = "'internet_ingestion_access_type' must be one of 'Enabled', 'Disabled', 'SecuredByPerimeter'"
+  }
 }
 
-variable "internet_query_enabled" {
+variable "internet_query_access_type" {
   description = "(Optional) Specifies whether or not Internet access is enabled for the workspace."
-  type        = bool
-  default     = true
+  type        = string
+  default     = "Enabled"
+
+  validation {
+    condition     = contains(["Enabled", "Disabled", "SecuredByPerimeter"], var.internet_query_access_type)
+    error_message = "'internet_ingestion_access_type' must be one of 'Enabled', 'Disabled', 'SecuredByPerimeter'"
+  }
+
 }
 
 variable "tags" {

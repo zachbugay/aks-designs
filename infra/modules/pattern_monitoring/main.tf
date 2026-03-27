@@ -10,6 +10,36 @@ locals {
     var.tags
   )
   instance = coalesce(var.instance, "001")
+  # https://github.com/hashicorp/terraform/issues/23785
+  test = pathexpand("~/${path.module}/main.tf")
+  command_map = substr(local.test, 0, 1) == "/" ? {
+    interpreter = ["/usr/bin/env", "bash", "-c"]
+    command     = <<-EOT
+      max=30
+      for i in $(seq 1 $max); do
+        state=$(az monitor data-collection endpoint show --ids '${azurerm_monitor_data_collection_endpoint.this.id}' --query provisioningState -o tsv 2>/dev/null)
+        if [ "$state" = "Succeeded" ]; then echo "DCE ready."; exit 0; fi
+        echo "Waiting... ($i/$max, state: $state)"; sleep 10
+      done
+      echo "DCE did not reach Succeeded within timeout." >&2; exit 1
+    EOT
+    } : {
+    interpreter = ["pwsh", "-NoProfile", "-NoLogo", "-Command", ]
+    command     = <<-EOT
+      $maxAttempts = 30
+      for ($i = 1; $i -le $maxAttempts; $i++) {
+        $result = az monitor data-collection endpoint show --ids '${azurerm_monitor_data_collection_endpoint.this.id}' --query provisioningState -o tsv 2>$null
+        if ($result -eq 'Succeeded') {
+          Write-Host "Data Collection Endpoint is ready (provisioningState: Succeeded)."
+          exit 0
+        }
+        Write-Host "Waiting for DCE to be ready... (attempt $i/$maxAttempts, provisioningState: $result)"
+        Start-Sleep -Seconds 10
+      }
+      Write-Error "Data Collection Endpoint did not reach 'Succeeded' state within timeout."
+      exit 1
+    EOT
+  }
 }
 
 module "locations" {
@@ -54,7 +84,7 @@ module "subnet" {
 
 module "routing" {
   source              = "../pattern_routing"
-  count               = var.firewall ? 1 : 0
+  count               = var.firewall_enabled ? 1 : 0
   random_string       = var.random_string
   location            = var.location
   environment         = var.environment
@@ -143,25 +173,13 @@ resource "azurerm_monitor_data_collection_endpoint" "this" {
   public_network_access_enabled = false
 }
 
+# DCE is Data Collection Endpoint.
 resource "terraform_data" "wait_for_dce_ready" {
   triggers_replace = [azurerm_monitor_data_collection_endpoint.this.id]
-  # DCE is Data Collection Endpoint.
+
   provisioner "local-exec" {
-    interpreter = ["pwsh", "-NoProfile", "-NoLogo", "-Command", ]
-    command     = <<-EOT
-      $maxAttempts = 30
-      for ($i = 1; $i -le $maxAttempts; $i++) {
-        $result = az monitor data-collection endpoint show --ids '${azurerm_monitor_data_collection_endpoint.this.id}' --query provisioningState -o tsv 2>$null
-        if ($result -eq 'Succeeded') {
-          Write-Host "Data Collection Endpoint is ready (provisioningState: Succeeded)."
-          exit 0
-        }
-        Write-Host "Waiting for DCE to be ready... (attempt $i/$maxAttempts, provisioningState: $result)"
-        Start-Sleep -Seconds 10
-      }
-      Write-Error "Data Collection Endpoint did not reach 'Succeeded' state within timeout."
-      exit 1
-    EOT
+    interpreter = local.command_map.interpreter
+    command     = local.command_map.command
   }
 }
 

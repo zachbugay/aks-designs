@@ -1,6 +1,0 @@
-apiVersion: v2
-name: gateway
-description: Application Gateway for Containers - ALB, Gateway, and TLS policies
-version: 0.1.0
-appVersion: "0.1.0"
-type: application

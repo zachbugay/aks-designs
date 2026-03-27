@@ -1,4 +1,0 @@
-namespace: infra
-kubeletIdentityClientId: ""
-keyVaultName: ""
-tenantId: ""

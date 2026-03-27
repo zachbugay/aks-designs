@@ -35,7 +35,7 @@ variable "tenant_id" {
   type        = string
 }
 
-variable "admin_group_object_ids" {
+variable "admin_object_ids" {
   description = "List of object IDs to be assigned admin over the AKS cluster."
   type        = list(string)
 }
@@ -47,8 +47,9 @@ variable "vm_size" {
 }
 
 variable "authorized_ip_ranges" {
-  description = "IP Address ranges to grant access to the cluster."
+  description = "(Optional) IP Address ranges to grant access to the cluster."
   type        = list(string)
+  default     = null
 }
 
 variable "firewall" {
@@ -255,4 +256,75 @@ variable "application_gateway_for_containers" {
   description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
   type        = bool
   default     = false
+}
+variable "key_vault_private_dns_zone_resource_id" {
+  description = "(Optional) The resource ID of the privatelink.vaultcore.azure.net Private DNS Zone to register the Key Vault private endpoint in."
+  type        = string
+  default     = null
+}
+
+variable "enable_private_api_server" {
+  description = "(Optional) Whether or not the Kubernetes API Server should be privately accessible"
+  type        = bool
+  default     = false
+}
+
+variable "private_dns_zone_id" {
+  description = "(Optional) Private DNS Zone ID the AKS Private API Server."
+  type        = string
+  default     = ""
+}
+
+
+variable "application_gateway" {
+  description = "(Optional) Deploy an Application Gateway in front of the cluster's in-cluster gateway."
+  type        = bool
+  default     = false
+}
+
+variable "application_gateway_backend_ip_addresses" {
+  description = "(Optional) The backend IP addresses of the Application Gateway, typically the internal load balancer IP of the in-cluster gateway."
+  type        = list(string)
+  default     = []
+}
+
+variable "application_gateway_certificate_common_name" {
+  description = "(Optional) The common name of the self signed Application Gateway frontend certificate. Defaults to the first hostname in application_gateway_applications."
+  type        = string
+  default     = null
+}
+
+variable "application_gateway_trusted_root_certificate_pem" {
+  description = "(Optional) PEM encoded root certificate that signs the backend TLS certificates presented by the in-cluster gateway. When null, the default trusted certificate authorities are used."
+  type        = string
+  default     = null
+}
+
+variable "application_gateway_applications" {
+  description = "(Optional) Applications published through the Application Gateway. Required when application_gateway is true."
+  type = map(object({
+    hostname                  = string
+    https_port                = optional(number, 443)
+    http_port                 = optional(number, 80)
+    probe_path                = string
+    probe_protocol            = optional(string, "Https")
+    probe_interval            = optional(number, 30)
+    probe_timeout             = optional(number, 30)
+    probe_unhealthy_threshold = optional(number, 3)
+    probe_status_codes        = optional(list(string), ["200-399"])
+    backend_port              = optional(number, 443)
+    backend_protocol          = optional(string, "Https")
+    backend_request_timeout   = optional(number, 30)
+    cookie_based_affinity     = optional(string, "Disabled")
+    rule_type                 = optional(string, "Basic")
+    redirect_type             = optional(string, "Permanent")
+    path_rules = optional(list(object({
+      name        = string
+      paths       = list(string)
+      backend_app = optional(string)
+    })), [])
+    https_rule_priority         = number
+    http_redirect_rule_priority = number
+  }))
+  default = {}
 }

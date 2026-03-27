@@ -19,7 +19,7 @@ resource "azurecaf_name" "this" {
   resource_type = "azurerm_storage_account"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
 module "locations" {
@@ -48,6 +48,7 @@ resource "azurerm_storage_account" "this" {
   default_to_oauth_authentication  = var.default_to_oauth_authentication
   is_hns_enabled                   = var.is_hns_enabled
   nfsv3_enabled                    = var.nfsv3_enabled
+
   network_rules {
     default_action             = var.network_rules_default_action
     bypass                     = var.network_rules_bypass
@@ -55,4 +56,8 @@ resource "azurerm_storage_account" "this" {
     virtual_network_subnet_ids = var.network_rules_virtual_network_subnet_ids
   }
   tags = local.tags
+
+  lifecycle {
+    ignore_changes = [network_rules]
+  }
 }

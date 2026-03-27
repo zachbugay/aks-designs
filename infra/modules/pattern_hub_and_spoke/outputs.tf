@@ -14,7 +14,8 @@ output "gateway_id" {
 }
 
 output "kube_config" {
-  value = module.spoke_aks.kube_config
+  value     = module.spoke_aks.kube_config
+  sensitive = true
 }
 
 output "application_gateway_public_ip_address" {
@@ -22,23 +23,28 @@ output "application_gateway_public_ip_address" {
   value       = var.application_gateway ? module.hub.application_gateway_public_ip_address : null
 }
 
+output "aks_application_gateway_public_ip_address" {
+  description = "The public IP address of the AKS spoke Application Gateway. Point the application DNS records at this address."
+  value       = module.spoke_aks.application_gateway_public_ip_address
+}
+
 output "acr_name" {
   description = "The Container Registry name this cluster has AcrPull access to."
-  value = module.spoke_aks.acr_name
+  value       = module.spoke_aks.acr_name
 }
 
 output "acr_id" {
   description = "The Container Registry ID this cluster has AcrPull access to."
-  value = module.spoke_aks.acr_id
+  value       = module.spoke_aks.acr_id
 }
 
 output "acr_endpoint" {
   description = "The Container Registry endpoint."
-  value = module.spoke_aks.acr_endpoint
+  value       = module.spoke_aks.acr_endpoint
 }
 
-output "aks_lb_snet_id" {
-  value = module.spoke_aks.aks_lb_subnet_id
+output "aks_alb_snet_id" {
+  value = module.spoke_aks.aks_alb_subnet_id
 }
 
 output "log_analytics_workspace_id" {

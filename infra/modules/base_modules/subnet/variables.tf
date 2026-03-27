@@ -55,13 +55,18 @@ variable "private_link_service_network_policies_enabled" {
 variable "snet_default_outbound_access_enabled" {
   description = "(Optional) Allow outbound access on the subnet?"
   type        = bool
-  default     = true
+  default     = false
 }
 
-variable "service_endpoints" {
+# https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/network/subnet_resource.go#L181
+# It is actually a list of objects {service: string, network_identifier: string}
+variable "service_endpoint" {
   description = "(Optional) A list of service endpoints."
-  type        = list(string)
-  default     = []
+  type = list(object({
+    service            = string
+    network_identifier = optional(string)
+  }))
+  default = []
 }
 
 variable "service_endpoint_policy_ids" {

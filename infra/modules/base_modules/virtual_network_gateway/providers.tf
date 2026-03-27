@@ -6,5 +6,8 @@ terraform {
     azurecaf = {
       source = "aztfmod/azurecaf"
     }
+    # azurelocations = {
+    #   source = "azurerm/locations/azure"
+    # }
   }
 }

@@ -32,7 +32,7 @@ variable "dns_servers" {
   default     = null
 }
 
-variable "firewall" {
+variable "firewall_enabled" {
   description = "(Optional) Firewall in Hub?."
   type        = bool
   default     = false

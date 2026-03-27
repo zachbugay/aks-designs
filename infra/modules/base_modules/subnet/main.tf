@@ -7,7 +7,7 @@ resource "azurecaf_name" "this" {
   resource_type = "azurerm_subnet"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
 resource "azurerm_subnet" "this" {
@@ -17,9 +17,17 @@ resource "azurerm_subnet" "this" {
   address_prefixes                              = var.address_prefixes
   private_endpoint_network_policies             = var.private_endpoint_network_policies
   private_link_service_network_policies_enabled = var.private_link_service_network_policies_enabled
-  service_endpoints                             = var.service_endpoints
   service_endpoint_policy_ids                   = var.service_endpoint_policy_ids
   default_outbound_access_enabled               = var.snet_default_outbound_access_enabled
+
+  dynamic "service_endpoint" {
+    for_each = var.service_endpoint
+    content {
+      service            = service_endpoint.value.service
+      network_identifier = service_endpoint.value.network_identifier
+    }
+  }
+
   dynamic "delegation" {
     for_each = var.delegation
     content {

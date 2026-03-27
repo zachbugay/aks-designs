@@ -13,6 +13,58 @@ locals {
   )
 
   instance = coalesce(var.instance, "001")
+
+  acns                = var.addons_profile.advanced_network_policies
+  app_routing_enabled = var.addons_profile.application_routing_gateway_api.enabled
+  agc_enabled         = var.addons_profile.application_gateway_for_containers.enabled
+  nap_enabled         = var.addons_profile.node_auto_provisioning.enabled
+  maintenance_window  = var.auto_upgrade_profile.maintenance_window
+
+  workload_labels = ["app.kubernetes.io/name", "app.kubernetes.io/component"]
+
+  metrics_labels_allowed = [
+    {
+      resource = "nodes"
+      labels = [
+        "kubernetes.azure.com/agentpool",
+        "node.kubernetes.io/instance-type",
+        "topology.kubernetes.io/zone",
+        "kubernetes.azure.com/os-sku",
+      ]
+    },
+    {
+      resource = "pods"
+      labels = concat(local.workload_labels, [
+        "app.kubernetes.io/version",
+        "app.kubernetes.io/managed-by",
+      ])
+    },
+    {
+      resource = "deployments"
+      labels   = local.workload_labels
+    },
+    {
+      resource = "namespaces"
+      labels   = ["kubernetes.io/metadata.name"]
+    },
+    {
+      resource = "statefulsets"
+      labels   = local.workload_labels
+    },
+    {
+      resource = "daemonsets"
+      labels   = local.workload_labels
+    },
+    {
+      resource = "jobs"
+      labels   = local.workload_labels
+    },
+  ]
+
+  metrics_labels_allowed_string = join(",", [
+    for entry in local.metrics_labels_allowed :
+    "${entry.resource}=[${join(",", entry.labels)}]"
+  ])
 }
 
 data "azurerm_resource_group" "rg" {
@@ -49,7 +101,7 @@ resource "azurecaf_name" "aks_kubelet_identity" {
 }
 
 # Identity for the managed cluster
-resource "azurerm_user_assigned_identity" "identity" {
+resource "azurerm_user_assigned_identity" "aks_identity" {
   location            = module.locations.name
   name                = azurecaf_name.aks_identity.result
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -63,206 +115,170 @@ resource "azurerm_user_assigned_identity" "kubelet_identity" {
 }
 
 resource "azurerm_role_assignment" "managed_identity_operator" {
-  principal_id         = azurerm_user_assigned_identity.identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
   scope                = azurerm_user_assigned_identity.kubelet_identity.id
   role_definition_name = "Managed Identity Operator"
 }
 
 resource "azurerm_role_assignment" "network_contributor" {
-  principal_id         = azurerm_user_assigned_identity.identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
   scope                = var.aks_vnet_id
   role_definition_name = "Network Contributor"
 }
 
-# resource "azurerm_role_assignment" "private_dns_zone_contributor" {
-#   principal_id         = azurerm_user_assigned_identity.identity.principal_id
-#   scope                = azurerm_private_dns_zone.zone.id
-#   role_definition_name = "Private DNS Zone Contributor"
-# }
+resource "azurerm_role_assignment" "private_dns_zone_contributor" {
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+  scope                = var.private_dns_zone_id
+  role_definition_name = "Private DNS Zone Contributor"
+}
 
-module "aks" {
-  source    = "Azure/avm-res-containerservice-managedcluster/azurerm"
-  version   = "0.5.3"
-  location  = data.azurerm_resource_group.rg.location
-  name      = coalesce(var.custom_name, azurecaf_name.this.result)
-  parent_id = data.azurerm_resource_group.rg.id
+resource "azurerm_kubernetes_cluster" "this" {
+  name = coalesce(var.custom_name, azurecaf_name.this.result)
 
-  aad_profile = {
-    admin_group_object_ids = var.admin_group_object_ids
-    enable_azure_rbac      = var.enable_azure_rbac # true
-    managed                = var.entra_managed     # true
+  automatic_upgrade_channel    = var.auto_upgrade_profile.upgrade_channel == "none" ? null : var.auto_upgrade_profile.upgrade_channel
+  dns_prefix                   = coalesce(var.dns_prefix, azurecaf_name.this.result)
+  image_cleaner_enabled        = true
+  image_cleaner_interval_hours = 168
+  kubernetes_version           = var.kubernetes_version
+  local_account_disabled       = var.disable_local_accounts
+  location                     = data.azurerm_resource_group.rg.location
+  node_os_upgrade_channel      = var.auto_upgrade_profile.node_os_upgrade_channel
+  oidc_issuer_enabled          = var.oidc_issuer_profile.enabled
+  private_cluster_enabled      = var.private_api_server
+  private_dns_zone_id          = var.private_dns_zone_id
+  resource_group_name          = data.azurerm_resource_group.rg.name
+  sku_tier                     = var.sku
+  workload_identity_enabled    = var.workload_identity
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks_identity.id]
+  }
+
+  kubelet_identity {
+    client_id                 = azurerm_user_assigned_identity.kubelet_identity.client_id
+    object_id                 = azurerm_user_assigned_identity.kubelet_identity.principal_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.kubelet_identity.id
+  }
+
+  default_node_pool {
+    name    = var.system_node_pool.name
+    vm_size = var.system_node_pool.vm_size
+    zones   = var.system_node_pool.zones
+    # Node auto-provisioning requires enableAutoScaling = false on every agent pool.
+    # AKS scales the system pool itself when NAP is enabled.
+    auto_scaling_enabled         = !local.nap_enabled
+    min_count                    = local.nap_enabled ? null : var.system_node_pool.min_count
+    max_count                    = local.nap_enabled ? null : var.system_node_pool.max_count
+    node_count                   = local.nap_enabled ? 3 : null
+    max_pods                     = var.system_node_pool.max_pods
+    vnet_subnet_id               = var.system_node_pool.vnet_subnet_id
+    os_sku                       = var.system_node_pool.os
+    only_critical_addons_enabled = var.system_node_pool.only_critical_addons_enabled
+
+    upgrade_settings {
+      max_surge = "33%"
+    }
+  }
+
+  azure_active_directory_role_based_access_control {
     tenant_id              = var.tenant_id
+    admin_group_object_ids = var.admin_object_ids
+    azure_rbac_enabled     = var.enable_azure_rbac
   }
 
-  addon_profile_oms_agent = {
-    enabled = true
-    config = {
-      log_analytics_workspace_resource_id = var.log_analytics_workspace_id
-      use_aad_auth                        = true
-    }
+  oms_agent {
+    log_analytics_workspace_id      = var.log_analytics_workspace_id
+    msi_auth_for_monitoring_enabled = true
   }
 
-  addon_profile_key_vault_secrets_provider = {
-    enabled = true
-    config = {
-      enable_secret_rotation = true
-      rotation_poll_interval = "2m"
-    }
+  key_vault_secrets_provider {
+    secret_rotation_enabled  = true
+    secret_rotation_interval = "2m"
   }
 
-  # agent_pools = {
-  #   usernodepool1 = {
-  #     name                = "unp1" # TODO
-  #     vm_size             = var.vm_size
-  #     availability_zones  = ["1"] # TODO
-  #     enable_auto_scaling = true
-  #     max_count           = 3
-  #     max_pods            = 110
-  #     min_count           = 2
-  #     os_disk_size_gb     = 60
-  #     vnet_subnet_id      = var.aks_cluster_subnet
-  #     upgrade_settings = {
-  #       max_surge = "100%"
-  #     }
-  #     os_sku = "AzureLinux"
-  #   }
-  # }
-
-  api_server_access_profile = {
-    authorized_ip_ranges   = var.authorized_ip_ranges
-    enable_private_cluster = false
+  microsoft_defender {
+    log_analytics_workspace_id = var.log_analytics_workspace_id
   }
 
-  # Auto upgrade profile defaults
-  #   var.autoupgrade_profile.default = {
-  #   node_os_upgrade_channel = "NodeImage"
-  #   upgrade_channel         = "rapid"
-  # }
-  # https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-node-os-image?tabs=azure-cli
-  auto_upgrade_profile = var.auto_upgrade_profile
-
-  default_agent_pool = {
-    name                = "systempool"
-    vm_size             = var.vm_size
-    availability_zones  = ["1"] # TODO
-    enable_auto_scaling = true
-    min_count           = 2
-    max_count           = 5
-    max_pods            = 110
-    vnet_subnet_id      = var.aks_cluster_subnet
-    mode                = "System"
-    # node_taints         = ["CriticalAddonsOnly=true:NoSchedule"]
-    upgrade_settings = {
-      max_surge = "50%"
-    }
-    os_sku = "AzureLinux"
+  node_provisioning_profile {
+    mode = var.addons_profile.node_auto_provisioning.enabled ? "Auto" : "Manual"
   }
 
-  oidc_issuer_profile    = var.oidc_issuer_profile
-  disable_local_accounts = var.disable_local_accounts
-
-  identity_profile = {
-    kubeletidentity = {
-      resource_id = azurerm_user_assigned_identity.kubelet_identity.id
-    }
+  storage_profile {
+    file_driver_enabled = true
   }
 
-  maintenanceconfiguration = {
-    aksManagedAutoUpgradeSchedule = {
-      name = "aksManagedAutoUpgradeSchedule"
-      maintenance_window = {
-        duration_hours = 4
-        start_time     = "00:00"
-        utc_offset     = "-05:00" # EST
-        start_date     = "2026-02-26"
-        schedule = {
-          weekly = {
-            day_of_week    = "Wednesday"
-            interval_weeks = 1
-          }
-        }
-      }
-    }
+  monitor_metrics {
+    annotations_allowed = null
+    labels_allowed      = local.metrics_labels_allowed_string
   }
 
-  managed_identities = {
-    system_assigned            = false
-    user_assigned_resource_ids = [azurerm_user_assigned_identity.identity.id]
-  }
-
-  service_mesh_profile = {
-    mode = "Istio"
-    istio = {
-      revisions = var.istio_revisions
-    }
-  }
-
-  network_profile = {
+  network_profile {
     outbound_type       = var.outbound_type
     service_cidr        = "10.233.0.0/16"
     dns_service_ip      = "10.233.0.10"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
     network_policy      = "cilium"
-    network_dataplane   = "cilium"
+    network_data_plane  = "cilium"
     load_balancer_sku   = "standard"
-    advanced_networking = {
-      enabled = true
-      observability = {
-        enabled = true
-      }
-      security = {
-        enabled                   = true
-        advanced_network_policies = "L7"
+
+    advanced_networking {
+      observability_enabled = var.addons_profile.advanced_network_policies.observability.enabled
+      security_enabled      = var.addons_profile.advanced_network_policies.security.enabled
+    }
+  }
+
+  maintenance_window_auto_upgrade {
+    frequency    = local.maintenance_window.frequency
+    interval     = local.maintenance_window.interval
+    duration     = local.maintenance_window.duration
+    day_of_week  = local.maintenance_window.day_of_week
+    day_of_month = local.maintenance_window.day_of_month
+    week_index   = local.maintenance_window.week_index
+    start_time   = local.maintenance_window.start_time
+    utc_offset   = local.maintenance_window.utc_offset
+    start_date   = local.maintenance_window.start_date
+
+    dynamic "not_allowed" {
+      for_each = local.maintenance_window.not_allowed
+      content {
+        start = not_allowed.value.start
+        end   = not_allowed.value.end
       }
     }
   }
 
-  azure_monitor_profile = {
-    metrics = {
-      enabled = true
-      kube_state_metrics = {
-        metric_annotations_allow_list = null
-        metric_labels_allowlist       = "nodes=[kubernetes.azure.com/agentpool,node.kubernetes.io/instance-type,topology.kubernetes.io/zone,kubernetes.azure.com/os-sku],pods=[app,app.kubernetes.io/name,app.kubernetes.io/component,app.kubernetes.io/version,app.kubernetes.io/managed-by],deployments=[app,app.kubernetes.io/name,app.kubernetes.io/component],namespaces=[kubernetes.io/metadata.name],statefulsets=[app,app.kubernetes.io/name,app.kubernetes.io/component],daemonsets=[app,app.kubernetes.io/name,app.kubernetes.io/component],jobs=[app,app.kubernetes.io/name,app.kubernetes.io/component]"
-      }
+  # TODO: What if I want this public with the authorized IP ranges?
+  dynamic "api_server_access_profile" {
+    for_each = var.private_api_server == true ? [1] : []
+    content {
+      subnet_id                           = var.private_api_server_subnet_id
+      virtual_network_integration_enabled = true
     }
   }
 
-  onboard_alerts          = true
-  alert_email             = var.alert_email
-  onboard_monitoring      = true
-  prometheus_workspace_id = var.monitor_workspace_id
-
-  security_profile = {
-    image_cleaner = {
-      enabled        = true
-      interval_hours = 168
-    }
-
-    defender = {
-      log_analytics_workspace_resource_id = var.log_analytics_workspace_id
-      security_monitoring = {
-        enabled = true
-      }
-    }
-
-    workload_identity = {
-      enabled = var.workload_identity
+  dynamic "service_mesh_profile" {
+    for_each = var.service_mesh_profile.istio.enabled == true ? [1] : []
+    content {
+      mode                             = "Istio"
+      revisions                        = toset(var.service_mesh_profile.istio.istio_revision)
+      internal_ingress_gateway_enabled = var.service_mesh_profile.istio.internal_ingress_gateway_enabled
+      external_ingress_gateway_enabled = var.service_mesh_profile.istio.external_ingress_gateway_enabled
     }
   }
 
-  dns_prefix         = coalesce(var.dns_prefix, azurecaf_name.this.result)
-  kubernetes_version = var.kubernetes_version
+  tags = local.tags
 
-  storage_profile = {
-    file_csi_driver = {
-      enabled = true
-    }
-  }
-
-  sku = {
-    name = "Base"
-    tier = "Free" # Standard or Premium
+  lifecycle {
+    ignore_changes = [
+      default_node_pool[0].node_count,
+      kubernetes_version,
+      location,
+      microsoft_defender,
+      web_app_routing
+    ]
   }
 
   depends_on = [
@@ -271,94 +287,128 @@ module "aks" {
   ]
 }
 
-module "role_assignments" {
-  source  = "Azure/avm-res-authorization-roleassignment/azurerm"
-  version = "0.3.0"
+# Node pool names are limited to 12 lowercase alphanumeric characters and must start with a
+# letter, so the surge pool name used during rotation is a "t" prefix plus 7 random characters.
+resource "random_string" "node_pool_rotation" {
+  for_each = var.user_node_pools
 
-  user_assigned_managed_identities_by_client_id = {
-    kubelet_identity = module.aks.kubelet_identity.clientId
+  length  = 7
+  special = false
+  upper   = false
+
+  keepers = {
+    node_pool_name = each.value.name
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "this" {
+  for_each = var.user_node_pools
+
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+  name                  = each.value.name
+
+  auto_scaling_enabled        = !local.nap_enabled
+  node_count                  = each.value.node_count
+  os_sku                      = each.value.os
+  temporary_name_for_rotation = "t${random_string.node_pool_rotation[each.key].result}"
+  vm_size                     = each.value.vm_size
+  vnet_subnet_id              = each.value.vnet_subnet_id
+
+  upgrade_settings {
+    drain_timeout_in_minutes      = each.value.upgrade_settings.drain_timeout_in_minutes
+    max_surge                     = each.value.upgrade_settings.max_surge
+    node_soak_duration_in_minutes = each.value.upgrade_settings.node_soak_duration_in_minutes
   }
 
-  role_definitions = {
-    acr_pull_role = {
-      name = "AcrPull"
-    }
+  tags = local.tags
+}
 
-    storage_file_data_smb_mi_admin = {
-      name = "Storage File Data SMB MI Admin"
-    }
-  }
+# AKS kubelet identity pulls images from the shared ACR.
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = var.container_registry_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.kubelet_identity.principal_id
+  principal_type       = "ServicePrincipal"
+}
 
-  role_assignments_for_scopes = {
-    # AKS pull from our ACR.
-    aks_acr = {
-      scope = var.container_registry_id
-      role_assignments = {
-        role_assignment_1 = {
-          role_definition                  = "acr_pull_role"
-          user_assigned_managed_identities = ["kubelet_identity"]
-        }
-      }
-    }
-
-    # On the user defined resource_group.
-    aks_user_node_assignments = {
-      scope = data.azurerm_resource_group.rg.id
-      role_assignments = {
-        role_assignment_1 = {
-          role_definition                  = "storage_file_data_smb_mi_admin"
-          user_assigned_managed_identities = ["kubelet_identity"]
-        }
-      }
-    }
-  }
-
-  depends_on = [module.aks]
+# AKS kubelet identity administers Azure Files SMB shares in the resource group.
+resource "azurerm_role_assignment" "storage_file_data_smb_mi_admin" {
+  scope                = data.azurerm_resource_group.rg.id
+  role_definition_name = "Storage File Data SMB MI Admin"
+  principal_id         = azurerm_user_assigned_identity.kubelet_identity.principal_id
+  principal_type       = "ServicePrincipal"
 }
 
 # Federated identity credentials for Kubernetes workload identity
 # TODO: For now, this is going to federate into the default namespace. Figure out a better way.
 resource "azurerm_federated_identity_credential" "this" {
-  audience  = ["api://AzureADTokenExchange"]
-  issuer    = module.aks.oidc_issuer_profile_issuer_url
-  name      = "fc-${azurerm_user_assigned_identity.kubelet_identity.name}"
-  parent_id = azurerm_user_assigned_identity.kubelet_identity.id
-  subject   = "system:serviceaccount:default:${azurerm_user_assigned_identity.kubelet_identity.name}"
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = azurerm_kubernetes_cluster.this.oidc_issuer_url
+  name                      = "fc-${azurerm_user_assigned_identity.kubelet_identity.name}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.kubelet_identity.id
+  subject                   = "system:serviceaccount:default:${azurerm_user_assigned_identity.kubelet_identity.name}"
 }
 
-# Enable the Application Gateway for Containers (ALB Controller) managed addon
-# and the Gateway API addon on the AKS cluster.
-# See: https://learn.microsoft.com/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller-addon
-resource "azapi_update_resource" "alb_controller_addon" {
-  count       = var.application_gateway_for_containers ? 1 : 0
-  type        = "Microsoft.ContainerService/managedClusters@2025-10-02-preview"
-  resource_id = module.aks.resource_id
+# https://learn.microsoft.com/en-us/azure/aks/app-routing-gateway-api#comparison-with-istio-service-mesh-add-on
+# https://learn.microsoft.com/en-us/azure/aks/container-network-performance-ebpf-host-routing
+# https://learn.microsoft.com/en-us/azure/aks/container-network-security-cilium-mutual-tls-how-to
+# https://learn.microsoft.com/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller-addon
+resource "azapi_update_resource" "addons_profile" {
+  type        = "Microsoft.ContainerService/managedClusters@2026-04-02-preview"
+  resource_id = azurerm_kubernetes_cluster.this.id
 
   body = {
     properties = {
-      ingressProfile = {
-        applicationLoadBalancer = {
-          enabled = true
+      networkProfile = {
+        advancedNetworking = {
+          enabled = local.acns.enabled
+          performance = {
+            accelerationMode = local.acns.enabled ? local.acns.performance.accelerationMode : "None"
+          }
+          security = {
+            advancedNetworkPolicies = local.acns.security.enabled ? local.acns.security.advancedNetworkPolicies : "None"
+            transitEncryption = {
+              type = local.acns.security.enabled && local.acns.security.cilium_mtls.enabled ? "mTLS" : "None"
+            }
+          }
         }
+      }
+      ingressProfile = {
         gatewayAPI = {
-          installation = "Standard"
+          installation = local.app_routing_enabled || local.agc_enabled ? "Standard" : "Disabled"
+        }
+        webAppRouting = {
+          enabled = local.app_routing_enabled
+          gatewayAPIImplementations = {
+            appRoutingIstio = {
+              mode = local.app_routing_enabled ? "Enabled" : "Disabled"
+            }
+          }
+          nginx = {
+            defaultIngressControllerType = "None"
+          }
+        }
+        applicationLoadBalancer = {
+          enabled = local.agc_enabled
         }
       }
     }
   }
 
-  depends_on = [module.aks]
+  ignore_missing_property = true
 }
 
-# Identity for the Application Load Balancer for the Addon.
-data "azurerm_user_assigned_identity" "applicationloadbalancer" {
-  name                = "applicationloadbalancer-${module.aks.name}"
-  resource_group_name = module.aks.node_resource_group_name
-  depends_on = [azapi_update_resource.alb_controller_addon]
-}
-
-resource "azurerm_role_assignment" "alb_network_contributor" {
-  principal_id         = data.azurerm_user_assigned_identity.applicationloadbalancer.principal_id
-  scope                = var.aks_lb_snet
-  role_definition_name = "Network Contributor"
-}
+# Identity for the Application Load Balancer for the Application Gateway for Containers Addon.
+# data "azurerm_user_assigned_identity" "applicationloadbalancer" {
+#   count               = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
+#   name                = "applicationloadbalancer-${azurerm_kubernetes_cluster.this.name}"
+#   resource_group_name = azurerm_kubernetes_cluster.this.node_resource_group
+#   depends_on          = [azapi_update_resource.alb_controller_addon]
+# }
+#
+# resource "azurerm_role_assignment" "alb_network_contributor" {
+#   count                = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
+#   principal_id         = data.azurerm_user_assigned_identity.applicationloadbalancer[count.index].principal_id
+#   scope                = var.aks_alb_snet
+#   role_definition_name = "Network Contributor"
+# }

@@ -36,31 +36,11 @@ resource "azurerm_key_vault" "this" {
   location                        = module.locations.name
   public_network_access_enabled   = var.public_network_access_enabled
   purge_protection_enabled        = var.purge_protection_enabled
-  rbac_authorization_enabled      = true
+  rbac_authorization_enabled      = var.rbac_authorization_enabled
   resource_group_name             = var.resource_group_name
   sku_name                        = var.sku_name
   soft_delete_retention_days      = var.soft_delete_retention_days
   tags                            = local.tags
-
-  dynamic "access_policy" {
-    for_each = var.access_policy
-    content {
-      tenant_id = access_policy.value.tenant_id
-      object_id = access_policy.value.object_id
-      key_permissions = [
-        for key_permission in access_policy.value.key_permissions : key_permission
-      ]
-      secret_permissions = [
-        for secret_permission in access_policy.value.secret_permissions : secret_permission
-      ]
-      certificate_permissions = [
-        for certificate_permission in access_policy.value.certificate_permissions : certificate_permission
-      ]
-      storage_permissions = [
-        for storage_permission in access_policy.value.storage_permissions : storage_permission
-      ]
-    }
-  }
 
   dynamic "network_acls" {
     for_each = var.network_acls

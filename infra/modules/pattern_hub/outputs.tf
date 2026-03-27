@@ -18,13 +18,23 @@ output "virtual_network_id" {
   value       = module.virtual_network.id
 }
 
+output "private_endpoint_subnet_id" {
+  description = "The ID of the hub subnet dedicated to private endpoints."
+  value       = module.subnet_private_endpoints.id
+}
+
+output "private_endpoint_subnet_name" {
+  description = "The name of the hub subnet dedicated to private endpoints."
+  value       = module.subnet_private_endpoints.name
+}
+
 output "gateway_public_ip_address" {
-  description = "The public IP address of the Gateway."
-  value       = var.gateway ? module.public_ip_gateway[*].ip_address : null
+  description = "The public IP address(es) of the Virtual Network Gateway."
+  value       = var.gateway ? module.public_ip_virtual_network_gateway[*].ip_address : null
 }
 
 output "gateway_id" {
-  description = "The ID of the Gateway."
+  description = "The ID of the Virtual Network Gateway."
   value       = var.gateway ? module.virtual_network_gateway[0].id : null
 }
 
@@ -45,12 +55,12 @@ output "log_analytics_workspace_workspace_id" {
 
 output "firewall_private_ip" {
   description = "Private IP of the Firewall"
-  value       = var.firewall ? module.firewall[0].private_ip_address : null
+  value       = var.firewall.enabled ? module.firewall[0].private_ip_address : null
 }
 
 output "firewall_public_ip_address" {
   description = "Public IP Address of the Firewall."
-  value       = var.firewall ? module.public_ip_firewall[0].ip_address : null
+  value       = var.firewall.enabled ? module.public_ip_firewall[0].ip_address : null
 }
 
 output "application_gateway_public_ip_address" {

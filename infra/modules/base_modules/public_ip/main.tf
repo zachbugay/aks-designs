@@ -24,7 +24,7 @@ resource "azurecaf_name" "this" {
   resource_type = "azurerm_public_ip"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
 resource "azurerm_public_ip" "this" {
@@ -37,4 +37,8 @@ resource "azurerm_public_ip" "this" {
   zones               = var.zones
   domain_name_label   = var.domain_name_label
   tags                = local.tags
+
+  lifecycle {
+    ignore_changes = [ip_tags]
+  }
 }

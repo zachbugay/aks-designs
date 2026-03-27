@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: demo-ca
+spec:
+  isCA: true
+  commonName: demo-ca
+  secretName: demo-ca
+  duration: 2160h # 90d
+  renewBefore: 720h # 30d
+  subject:
+    organizations:
+      - aks-https-demo
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Never
+  usages:
+    - cert sign
+    - crl sign
+    - digital signature
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

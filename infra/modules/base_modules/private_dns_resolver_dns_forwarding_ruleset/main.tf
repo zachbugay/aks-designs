@@ -24,7 +24,7 @@ resource "azurecaf_name" "this" {
   resource_type = "azurerm_private_dns_resolver_dns_forwarding_ruleset"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
 resource "azurecaf_name" "vnet_link" {
@@ -32,7 +32,7 @@ resource "azurecaf_name" "vnet_link" {
   resource_type = "azurerm_private_dns_resolver_virtual_network_link"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
 resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "this" {

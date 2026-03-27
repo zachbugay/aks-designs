@@ -24,7 +24,7 @@ resource "azurecaf_name" "this" {
   resource_type = "azurerm_lb"
   prefixes      = [var.environment]
   suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
-  clean_input = true
+  clean_input   = true
 }
 
 resource "azurerm_lb" "this" {

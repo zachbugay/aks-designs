@@ -101,3 +101,19 @@ variable "random_string" {
   type        = string
   default     = ""
 }
+variable "vpn_auth_types" {
+  description = "(Optional) The Point-to-Site authentication types to enable. Valid values are 'AAD', 'Certificate' and 'Radius'."
+  type        = list(string)
+  default     = ["AAD"]
+
+  validation {
+    condition     = length(setsubtract(var.vpn_auth_types, ["AAD", "Certificate", "Radius"])) == 0
+    error_message = "vpn_auth_types may only contain 'AAD', 'Certificate' or 'Radius'."
+  }
+}
+
+variable "p2s_root_certificates" {
+  description = "(Optional) Map of Point-to-Site root certificate name to base64 encoded DER public certificate data. Required when 'Certificate' is in vpn_auth_types."
+  type        = map(string)
+  default     = {}
+}

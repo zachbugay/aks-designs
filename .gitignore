@@ -6,6 +6,9 @@
 .terraform*
 **/terraform.tfstate
 
+# Azure Firewall stop/start saved configuration
+scripts/.firewall-state/
+
 # C# build outputs
 **/bin/
 **/obj/
@@ -39,6 +42,7 @@ bld/
 *.VisualState.xml
 TestResult.xml
 [Tt]est[Rr]esult*/
+*.lscache
 
 # Rider
 .idea/
@@ -67,3 +71,7 @@ root-application.json
 
 # Draw.io bkp
 *.bkp
+
+# Custom - ignore secrets.txt
+secrets.txt
+

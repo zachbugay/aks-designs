@@ -23,7 +23,7 @@ variable "resource_group_name" {
 
 variable "virtual_network_link" {
   description = "(Optional) The ID of the Virtual Network Link to associate with the Private DNS Resolver."
-  type        = string
+  type        = bool
   default     = false
 }
 

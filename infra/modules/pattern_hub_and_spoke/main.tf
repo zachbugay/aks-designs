@@ -10,10 +10,31 @@ locals {
     var.tags
   )
 
-  virtual_machines = merge([for k, v in module.spoke : v.virtual_machines]...)
-  dns_servers      = var.dns_servers != null ? var.dns_servers : (var.spoke_dns ? [module.spoke_dns[0].inbound_endpoint_ip] : [])
-  vnet_dns_servers = var.dns_servers != null ? var.dns_servers : var.spoke_dns ? [module.spoke_dns[0].inbound_endpoint_ip] : var.firewall ? [module.hub.firewall_private_ip] : []
-  hub_dns_servers  = var.dns_servers != null ? var.dns_servers : (var.spoke_dns) ? [module.spoke_dns[0].inbound_endpoint_ip] : []
+  authorized_ip_ranges = concat((var.authorized_ip_ranges == null ? [] : var.authorized_ip_ranges))
+  virtual_machines     = merge([for k, v in module.spoke : v.virtual_machines]...)
+  dns_servers          = var.dns_servers != null ? var.dns_servers : (var.spoke_dns ? [module.spoke_dns[0].inbound_endpoint_ip] : [])
+  vnet_dns_servers     = var.dns_servers != null ? var.dns_servers : var.spoke_dns ? [module.spoke_dns[0].inbound_endpoint_ip] : var.firewall.enabled ? [module.hub.firewall_private_ip] : []
+  hub_dns_servers      = var.dns_servers != null ? var.dns_servers : (var.spoke_dns) ? [module.spoke_dns[0].inbound_endpoint_ip] : []
+
+  spoke_dns_enabled = var.spoke_dns && var.address_space_spoke_dns != null
+
+  p2s_certificate_enabled = var.gateway && var.p2s_vpn && contains(var.vpn_auth_types, "Certificate") && local.spoke_dns_enabled
+
+  p2s_root_certificates = {}
+
+  private_endpoint_zones = [
+    "privatelink.blob.core.windows.net",
+    "privatelink.agentsvc.azure-automation.net",
+    "privatelink.monitor.azure.com",
+    "privatelink.ods.opinsights.azure.com",
+    "privatelink.oms.opinsights.azure.com",
+    "privatelink.vaultcore.azure.net",
+    "privatelink.cognitiveservices.azure.com",
+    "privatelink.openai.azure.com",
+    "privatelink.azurewebsites.net",
+    "privatelink.search.windows.net",
+    "privatelink.${var.location}.azmk8s.io"
+  ]
 }
 
 module "locations" {
@@ -23,41 +44,42 @@ module "locations" {
 
 module "hub" {
   source                      = "../pattern_hub"
-  random_string               = var.random_string
   address_space               = var.address_space_hub
+  appgw_backend_ip_addresses  = var.appgw_backend_ip_addresses
+  application_gateway         = false # I do not want a hub appgw.
   bastion                     = var.bastion
   bastion_sku                 = var.bastion_sku
   dns_servers                 = local.hub_dns_servers
   environment                 = var.environment
-  firewall_sku_tier           = var.firewall_sku_tier
+  firewall                    = var.firewall
   gateway                     = var.gateway
   gateway_sku                 = var.gateway_sku
   gateway_type                = var.gateway_type
   location                    = module.locations.name
   nat_gateway_public_ip_count = var.nat_gateway_public_ip_count
+  p2s_root_certificates       = local.p2s_root_certificates
   p2s_vpn                     = var.p2s_vpn
+  random_string               = var.random_string
   storage_account             = true
   tags                        = local.tags
-  firewall                    = var.firewall
-  application_gateway         = var.application_gateway
-  appgw_backend_ip_addresses  = var.appgw_backend_ip_addresses
+  vpn_auth_types              = var.vpn_auth_types
   workload                    = var.workload
 }
 
 module "spoke" {
   source                 = "../pattern_spoke"
   for_each               = { for spoke in var.address_space_spokes : "${spoke.workload}-${spoke.environment}-${spoke.instance}" => spoke }
-  random_string          = var.random_string
   address_space          = each.value.address_space
   dependency_agent       = var.dependency_agent
   dns_servers            = local.vnet_dns_servers
   environment            = each.value.environment
-  firewall               = var.firewall
+  firewall               = var.firewall.enabled
   linux_virtual_machine  = each.value.virtual_machines
   location               = var.location
   monitor_agent          = var.private_monitoring
   network_security_group = var.network_security_group
-  subnets_next_hop       = var.firewall ? module.hub.firewall_private_ip : null
+  random_string          = var.random_string
+  subnets_next_hop       = var.firewall.enabled ? module.hub.firewall_private_ip : null
   tags                   = local.tags
   update_management      = var.update_management
   watcher_agent          = var.connection_monitor
@@ -81,14 +103,15 @@ module "virtual_network_peerings" {
 }
 
 module "spoke_dns" {
-  source           = "../pattern_spoke_dns"
-  count            = (var.spoke_dns && var.address_space_spoke_dns != null) ? 1 : 0
-  random_string    = var.random_string
-  address_space    = var.address_space_spoke_dns
-  default_next_hop = (var.firewall) ? module.hub.firewall_private_ip : null
-  environment      = var.environment
-  location         = module.locations.name
-  tags             = local.tags
+  source                 = "../pattern_spoke_dns"
+  count                  = (var.spoke_dns && var.address_space_spoke_dns != null) ? 1 : 0
+  address_space          = var.address_space_spoke_dns
+  default_next_hop       = (var.firewall.enabled) ? module.hub.firewall_private_ip : null
+  environment            = var.environment
+  location               = module.locations.name
+  private_endpoint_zones = local.private_endpoint_zones
+  random_string          = var.random_string
+  tags                   = local.tags
 }
 
 module "virtual_network_peerings_dns" {
@@ -109,7 +132,7 @@ module "virtual_network_peerings_dns" {
 
 module "route_to_spoke_dns" {
   source                 = "../base_modules/route"
-  count                  = (var.gateway && var.firewall && var.spoke_dns && var.address_space_spoke_dns != null) ? 1 : 0
+  count                  = (var.gateway && var.firewall.enabled && var.spoke_dns && var.address_space_spoke_dns != null) ? 1 : 0
   address_prefix         = module.spoke_dns[0].address_space[0]
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
@@ -119,7 +142,7 @@ module "route_to_spoke_dns" {
 
 module "route_to_spokes" {
   source                 = "../base_modules/route"
-  for_each               = (var.gateway && var.firewall) ? { for spoke in var.address_space_spokes : "${spoke.workload}-${spoke.environment}-${spoke.instance}" => spoke } : {}
+  for_each               = (var.gateway && var.firewall.enabled) ? { for spoke in var.address_space_spokes : "${spoke.workload}-${spoke.environment}-${spoke.instance}" => spoke } : {}
   address_prefix         = each.value.address_space[0]
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
@@ -130,13 +153,13 @@ module "route_to_spokes" {
 module "pattern_monitoring" {
   source                     = "../pattern_monitoring"
   count                      = (var.private_monitoring && var.address_space_spoke_private_monitoring != null) ? 1 : 0
-  random_string              = var.random_string
   address_space              = var.address_space_spoke_private_monitoring
   dns_servers                = local.vnet_dns_servers
-  firewall                   = var.firewall
+  firewall_enabled           = var.firewall.enabled
   location                   = var.location
   log_analytics_workspace_id = module.hub.log_analytics_workspace_id
-  next_hop                   = var.firewall ? module.hub.firewall_private_ip : ""
+  next_hop                   = var.firewall.enabled ? module.hub.firewall_private_ip : ""
+  random_string              = var.random_string
   private_dns_zone_ids = [
     module.spoke_dns[0].private_dns_zones["privatelink.monitor.azure.com"]["id"],
     module.spoke_dns[0].private_dns_zones["privatelink.agentsvc.azure-automation.net"]["id"],
@@ -165,7 +188,7 @@ module "virtual_network_peerings_monitoring" {
 
 module "route_to_spoke_aks" {
   source                 = "../base_modules/route"
-  count                  = (var.firewall && var.address_space_spoke_aks != null) ? 1 : 0
+  count                  = (var.firewall.enabled && var.address_space_spoke_aks != null) ? 1 : 0
   address_prefix         = var.address_space_spoke_aks[0]
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
@@ -175,7 +198,7 @@ module "route_to_spoke_aks" {
 
 module "route_to_spoke_monitoring" {
   source                 = "../base_modules/route"
-  count                  = (var.gateway && var.firewall && var.private_monitoring && var.address_space_spoke_private_monitoring != null) ? 1 : 0
+  count                  = (var.gateway && var.firewall.enabled && var.private_monitoring && var.address_space_spoke_private_monitoring != null) ? 1 : 0
   address_prefix         = var.address_space_spoke_private_monitoring[0]
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
@@ -184,35 +207,98 @@ module "route_to_spoke_monitoring" {
 }
 
 module "spoke_aks" {
-  source                             = "../pattern_spoke_aks"
-  address_space                      = var.address_space_spoke_aks
-  admin_group_object_ids             = var.admin_group_object_ids
-  alert_email                        = var.alert_email
-  application_gateway_for_containers = var.application_gateway_for_containers
-  authorized_ip_ranges               = concat(var.authorized_ip_ranges, [for ip in module.hub.nat_gateway_public_ip_addresses : "${ip}/32"])
-  dns_servers                        = local.vnet_dns_servers
-  environment                        = var.workload_environment
-  firewall                           = var.firewall
-  gateway_exists                     = var.gateway
-  hub_resource_group_name            = module.hub.resource_group_name
-  hub_virtual_network_id             = module.hub.virtual_network_id
-  instance                           = var.instance
-  location                           = var.location
-  log_analytics_workspace_id         = module.hub.log_analytics_workspace_id
-  monitor_workspace_id               = module.hub.azure_monitor_workspace_id
-  network_security_group             = false
-  random_string                      = var.random_string
-  subnets_next_hop                   = var.firewall ? module.hub.firewall_private_ip : null
-  tags                               = local.tags
-  tenant_id                          = var.tenant_id
-  workload                           = "ent-apps"
-  vm_size                            = var.vm_size
+  source                                           = "../pattern_spoke_aks"
+  address_space                                    = var.address_space_spoke_aks
+  admin_object_ids                                 = var.admin_object_ids
+  alert_email                                      = var.alert_email
+  application_gateway_for_containers               = var.application_gateway_for_containers
+  application_gateway                              = var.application_gateway
+  application_gateway_trusted_root_certificate_pem = var.application_gateway_trusted_root_certificate_pem
+  # TODO: This needs to be more dynamic some how.
+  application_gateway_backend_ip_addresses = ["10.100.12.250"]
+  authorized_ip_ranges                     = local.authorized_ip_ranges
+  dns_servers                              = local.vnet_dns_servers
+  enable_private_api_server                = var.enable_private_api_server
+  environment                              = var.workload_environment
+  firewall                                 = var.firewall.enabled
+  gateway_exists                           = var.gateway
+  hub_resource_group_name                  = module.hub.resource_group_name
+  hub_virtual_network_id                   = module.hub.virtual_network_id
+  instance                                 = var.instance
+  key_vault_private_dns_zone_resource_id   = local.spoke_dns_enabled ? module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"] : null
+  location                                 = var.location
+  log_analytics_workspace_id               = module.hub.log_analytics_workspace_id
+  monitor_workspace_id                     = module.hub.azure_monitor_workspace_id
+  private_dns_zone_id                      = local.spoke_dns_enabled ? module.spoke_dns[0].private_dns_zones["privatelink.${var.location}.azmk8s.io"]["id"] : null
+  random_string                            = var.random_string
+  subnets_next_hop                         = var.firewall.enabled ? module.hub.firewall_private_ip : null
+  tags                                     = local.tags
+  tenant_id                                = var.tenant_id
+  vm_size                                  = var.vm_size
+  workload                                 = "ent-apps"
+
+  application_gateway_applications = {
+    httpbin = {
+      hostname                    = "zachb-httpbin.duckdns.org"
+      https_port                  = 443
+      http_port                   = 80
+      probe_path                  = "/get"
+      probe_protocol              = "Https"
+      probe_interval              = 30
+      probe_timeout               = 30
+      probe_unhealthy_threshold   = 3
+      probe_status_codes          = ["200-399"]
+      backend_port                = 443
+      backend_protocol            = "Https"
+      backend_request_timeout     = 30
+      cookie_based_affinity       = "Disabled"
+      rule_type                   = "Basic"
+      redirect_type               = "Permanent"
+      path_rules                  = []
+      https_rule_priority         = 100
+      http_redirect_rule_priority = 90
+    }
+    podinfo = {
+      hostname                    = "zachb-podinfo.duckdns.org"
+      https_port                  = 443
+      http_port                   = 80
+      probe_path                  = "/healthz"
+      probe_protocol              = "Https"
+      probe_interval              = 30
+      probe_timeout               = 30
+      probe_unhealthy_threshold   = 3
+      probe_status_codes          = ["200-399"]
+      backend_port                = 443
+      backend_protocol            = "Https"
+      backend_request_timeout     = 30
+      cookie_based_affinity       = "Disabled"
+      rule_type                   = "Basic"
+      redirect_type               = "Permanent"
+      path_rules                  = []
+      https_rule_priority         = 110
+      http_redirect_rule_priority = 80
+    }
+  }
 
   depends_on = [
     module.hub,
     module.virtual_network_peerings_dns,
     module.virtual_network_peerings_monitoring
   ]
+}
+
+# The Application Gateway reads its frontend certificate from the AKS spoke Key Vault over that
+# vault's private endpoint. Azure requires the privatelink.vaultcore.azure.net zone to be linked
+# directly to the virtual network hosting the Application Gateway, even when the virtual network
+# uses custom DNS servers.
+# https://learn.microsoft.com/azure/application-gateway/key-vault-certs
+resource "azurerm_private_dns_zone_virtual_network_link" "aks_spoke_key_vault" {
+  count                = local.spoke_dns_enabled ? 1 : 0
+  name                 = "link-aks-spoke-vaultcore-${var.random_string}"
+  private_dns_zone_id  = module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"]
+  virtual_network_id   = module.spoke_aks.virtual_network_id
+  registration_enabled = false
+  tags                 = local.tags
 }
 
 module "data_collection_rule_association" {
@@ -371,3 +457,35 @@ resource "azurerm_network_watcher_flow_log" "hub" {
     interval_in_minutes   = 10
   }
 }
+
+module "private_key_vault" {
+  source = "../composite_modules/private_key_vault"
+  count  = local.spoke_dns_enabled ? 1 : 0
+
+  enabled_for_deployment                 = true
+  enabled_for_disk_encryption            = true
+  enabled_for_template_deployment        = true
+  environment                            = var.environment
+  instance                               = var.instance
+  key_vault_private_dns_zone_resource_id = module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"]
+  location                               = module.locations.name
+  private_endpoint_subnet_resource_id    = module.hub.private_endpoint_subnet_id
+  public_network_access_enabled          = true # TODO: Just for now while testing.
+  key_vault_administrators               = var.admin_object_ids
+  random_string                          = var.random_string
+  resource_group_name                    = module.hub.resource_group_management_name
+  tags                                   = merge(local.tags, { "SecurityControl" : "Ignore" })
+  tenant_id                              = var.tenant_id
+  workload                               = var.workload
+}
+
+# module "p2s_root_certificate" {
+#   source = "../composite_modules/p2s_root_certificate"
+#   count  = local.p2s_certificate_enabled ? 1 : 0
+#
+#   environment  = var.environment
+#   instance     = var.instance
+#   key_vault_id = module.private_key_vault[0].id
+#   tags         = local.tags
+#   workload     = var.workload
+# }

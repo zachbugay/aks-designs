@@ -37,9 +37,14 @@ variable "tenant_id" {
 }
 
 variable "sku_name" {
-  description = "(Optional) Azure Key Vault Sku: premium or standard"
-  type = string
-  default = "standard" 
+  description = "(Optional) Azure Key Vault Sku: standard or premium."
+  type        = string
+  default     = "standard"
+
+  validation {
+    condition     = contains(["standard", "premium"], var.sku_name)
+    error_message = "sku_name must be one of: 'standard', 'premium'"
+  }
 }
 
 variable "enabled_for_disk_encryption" {
@@ -73,22 +78,9 @@ variable "purge_protection_enabled" {
 }
 
 variable "public_network_access_enabled" {
-  description = "(Optional) Is Public Network Access Enabled for this Key Vault?"
+  description = "(Optional) Whether public network access is enabled. Default is false."
   type        = bool
-  default     = true
-}
-
-variable "access_policy" {
-  description = "(Optional) A list of Access Policies which should be set on the Key Vault."
-  type = list(object({
-    tenant_id               = string
-    object_id               = string
-    key_permissions         = list(string)
-    secret_permissions      = list(string)
-    certificate_permissions = list(string)
-    storage_permissions     = list(string)
-  }))
-  default = []
+  default     = false
 }
 
 variable "network_acls" {
@@ -102,6 +94,11 @@ variable "network_acls" {
   default = []
 }
 
+variable "rbac_authorization_enabled" {
+  description = "(Required) Only RBAC is going to work here. Access Policies are forbidden."
+  type        = bool
+  default     = true
+}
 
 variable "tags" {
   description = "(Optional) A mapping of tags to assign to the resource."

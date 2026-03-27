@@ -1,6 +1,6 @@
 resource "azurecaf_name" "this" {
   resource_type = "azurerm_monitor_diagnostic_setting"
-  clean_input = true
+  clean_input   = true
 }
 
 resource "azurerm_monitor_diagnostic_setting" "this" {

@@ -45,7 +45,7 @@ variable "sku" {
 }
 
 variable "sku_tier" {
-  description = "(Optional) The SKU Tier that should be used for the Public IP."
+  description = "(Optional) The SKU tier of the Public IP. Either Regional, or Global."
   type        = string
   default     = "Regional"
 }
@@ -53,7 +53,7 @@ variable "sku_tier" {
 variable "zones" {
   description = "(Optional) A collection containing the availability zone to allocate the Public IP in."
   type        = list(string)
-  default     = null
+  default     = ["1", "2", "3"]
 }
 
 variable "domain_name_label" {

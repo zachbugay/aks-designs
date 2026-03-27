@@ -32,25 +32,25 @@ variable "dns_servers" {
 }
 
 variable "gateway" {
-  description = "(Optional) Include a Gateway."
+  description = "(Optional) Include a VPN Gateway."
   type        = bool
   default     = false
 }
 
 variable "gateway_type" {
-  description = "(Optional) The type of the Gateway."
+  description = "(Optional) The type of the VPN Gateway."
   type        = string
   default     = "Vpn"
 }
 
 variable "gateway_sku" {
-  description = "(Optional) The SKU of the Gateway."
+  description = "(Optional) The SKU of the VPN Gateway."
   type        = string
   default     = "VpnGw1AZ"
 }
 
 variable "asn" {
-  description = "(Optional) The ASN of the Gateway."
+  description = "(Optional) The ASN of the VPN Gateway."
   type        = number
   default     = 0
 }
@@ -59,6 +59,18 @@ variable "p2s_vpn" {
   description = "(Optional) Include a Point-to-Site VPN configuration."
   type        = bool
   default     = false
+}
+
+variable "vpn_auth_types" {
+  description = "(Optional) The Point-to-Site authentication types to enable on the Virtual Network Gateway."
+  type        = list(string)
+  default     = ["AAD"]
+}
+
+variable "p2s_root_certificates" {
+  description = "(Optional) Map of Point-to-Site root certificate name to base64 encoded DER public certificate data."
+  type        = map(string)
+  default     = {}
 }
 
 variable "gateway_active_active" {
@@ -99,26 +111,18 @@ variable "nat_gateway_public_ip_count" {
 
 variable "firewall" {
   description = "(Optional) Whether or not to use an Azure Firewall."
-  type        = bool
-  default     = false
-}
-
-variable "firewall_sku_name" {
-  description = "(Optional) SKU name of the Firewall. Possible values are AZFW_Hub and AZFW_VNet. Changing this forces a new resource to be created."
-  type        = string
-  default     = "AZFW_VNet"
-}
-
-variable "firewall_sku_tier" {
-  description = "(Optional) SKU tier of the Firewall. Possible values are Premium, Standard and Basic."
-  type        = string
-  default     = "Basic"
-}
-
-variable "firewall_default_rules" {
-  description = "(Optional) Include the default rules for the Firewall."
-  type        = bool
-  default     = true
+  type = object({
+    enabled       = bool
+    sku_tier      = string
+    sku_name      = string
+    default_rules = bool
+  })
+  default = {
+    enabled       = true
+    sku_tier      = "Standard"
+    sku_name      = "AZFW_VNet"
+    default_rules = true
+  }
 }
 
 variable "storage_account" {
@@ -148,7 +152,7 @@ variable "appgw_backend_ip_addresses" {
 variable "appgw_waf_enabled" {
   description = "(Optional) Enable WAF on the Application Gateway. Only supported on WAF_v2 SKU."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "appgw_waf_mode" {
@@ -162,3 +166,4 @@ variable "random_string" {
   type        = string
   default     = ""
 }
+

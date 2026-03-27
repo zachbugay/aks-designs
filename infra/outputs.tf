@@ -18,9 +18,9 @@ output "AZURE_CONTAINER_REGISTRY_ENDPOINT" {
   value       = module.pattern_hub_and_spoke.acr_endpoint
 }
 
-output "AKS_LB_SNET_ID" {
+output "AKS_ALB_SNET_ID" {
   description = "Delegated subnet for the Application Gateway for Containers."
-  value = module.pattern_hub_and_spoke.aks_lb_snet_id
+  value       = module.pattern_hub_and_spoke.aks_alb_snet_id
 }
 
 output "AZURE_AKS_CLUSTER_NAME" {
@@ -46,4 +46,9 @@ output "KEY_VAULT_NAME" {
 output "KUBELET_IDENTITY_CLIENT_ID" {
   description = "The client ID of the kubelet managed identity."
   value       = module.pattern_hub_and_spoke.kubelet_identity_client_id
+}
+
+output "APPLICATION_GATEWAY_PUBLIC_IP" {
+  description = "Public IP of the AKS spoke Application Gateway. Point zachb-httpbin.duckdns.org and zachb-podinfo.duckdns.org at this address."
+  value       = module.pattern_hub_and_spoke.aks_application_gateway_public_ip_address
 }
