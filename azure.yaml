@@ -6,11 +6,14 @@ infra:
   module: main
 hooks:
   postprovision:
-    run: pwsh -NoLogo -NoProfile -File ./hooks/postprovision.ps1
+    shell: pwsh
+    run: ./hooks/postprovision.ps1
   postdeploy:
-    run: pwsh -NoLogo -NoProfile -File ./hooks/postdeploy.ps1
+    shell: pwsh
+    run: ./hooks/postdeploy.ps1
   postdown:
-    run: pwsh -NoLogo -NoProfile -File ./hooks/postdown.ps1
+    shell: pwsh
+    run: ./hooks/postdown.ps1
 services:
   argocd:
     host: aks
