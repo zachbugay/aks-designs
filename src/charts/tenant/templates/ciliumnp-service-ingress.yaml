@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------
+# CiliumNetworkPolicy — Service API ingress on port 8080
+#
+# Allows inbound TCP traffic to API pods on port 8080.
+# L7 HTTP enforcement is handled by Istio AuthorizationPolicy
+# (ap-service.yaml).
+#
+# Prerequisites:
+#   - Azure CNI powered by Cilium (network_dataplane = "cilium")
+#   - Advanced Container Networking Services (ACNS) enabled
+#     with advanced_network_policies = "FQDN"
+# ---------------------------------------------------------------
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: service-ingress
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  ingress:
+    - toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

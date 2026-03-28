@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------
+# CiliumNetworkPolicy — Service API egress to Keycloak (JWT validation)
+#
+# Allows the API pod to reach Keycloak in the identity namespace
+# for OIDC discovery and JWKS key retrieval.  Port 80 is required
+# because Istio's Envoy strips non-standard ports from the Host
+# header, causing Keycloak to generate metadata URLs on port 80.
+#
+# Prerequisites:
+#   - Azure CNI powered by Cilium (network_dataplane = "cilium")
+#   - Advanced Container Networking Services (ACNS) enabled
+#     with advanced_network_policies = "FQDN"
+# ---------------------------------------------------------------
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: service-egress-keycloak
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": identity
+            "k8s:app.kubernetes.io/name": keycloak
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP

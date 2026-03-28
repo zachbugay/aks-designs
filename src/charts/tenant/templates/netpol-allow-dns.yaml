@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------
+# Kubernetes NetworkPolicy — Allow DNS resolution
+#
+# Permits all pods to reach CoreDNS in kube-system on port 53
+# (UDP + TCP).  Without this, pods cannot resolve any service
+# names after the default-deny-all policy is applied.
+# ---------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

@@ -1,0 +1,38 @@
+# ---------------------------------------------------------------
+# CiliumNetworkPolicy — keycloak-init Job egress to Keycloak
+#
+# Allows the PostSync realm-bootstrapping Job to reach Keycloak
+# in the identity namespace on port 8080.
+#
+# The Job is selected by having app.kubernetes.io/part-of set
+# (inherited from tenant.labels) but no app.kubernetes.io/name
+# (which only workload deployments carry).
+#
+# Prerequisites:
+#   - Azure CNI powered by Cilium (network_dataplane = "cilium")
+#   - Advanced Container Networking Services (ACNS) enabled
+#     with advanced_network_policies = "FQDN"
+# ---------------------------------------------------------------
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: keycloak-init-egress
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: Exists
+      - key: app.kubernetes.io/name
+        operator: DoesNotExist
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": identity
+            "k8s:app.kubernetes.io/name": keycloak
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------
+# Kubernetes NetworkPolicy — Default deny all ingress and egress
+#
+# Zero-trust foundation.  CiliumNetworkPolicy (ciliumnp-*.yaml) then
+# selectively opens the exact L4 ports each workload requires.
+#
+# K8s NP and CiliumNetworkPolicy rules are additive — the union
+# of allow rules from both policy types determines what is
+# permitted.
+# ---------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

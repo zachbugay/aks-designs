@@ -1,0 +1,41 @@
+# ---------------------------------------------------------------
+# CiliumNetworkPolicy — Istio sidecar control plane and health probes
+#
+# Every pod with an Istio sidecar needs:
+#   Ingress: 15021 (health probes from kubelet), 15090 (Envoy metrics)
+#   Egress:  15012 (xDS from istiod in aks-istio-system)
+#
+# Works alongside the Kubernetes NetworkPolicy deny-all foundation
+# (netpol-default-deny.yaml).  Cilium unions allow rules from both
+# policy types, so this rule opens the minimum L4 surface required.
+#
+# Prerequisites:
+#   - Azure CNI powered by Cilium (network_dataplane = "cilium")
+#   - Advanced Container Networking Services (ACNS) enabled
+#     with advanced_network_policies = "FQDN"
+# ---------------------------------------------------------------
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: istio-sidecar
+  namespace: {{ .Values.tenantName }}
+  labels:
+    {{- include "tenant.labels" . | nindent 4 }}
+spec:
+  endpointSelector: {}
+  ingress:
+    - toPorts:
+        - ports:
+            - port: "15021"
+              protocol: TCP
+            - port: "15090"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": aks-istio-system
+            "k8s:app": istiod
+      toPorts:
+        - ports:
+            - port: "15012"
+              protocol: TCP
