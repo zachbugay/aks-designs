@@ -11,6 +11,10 @@ spec:
       port: 8080
       targetPort: http
       name: http
+    - protocol: TCP
+      port: 80
+      targetPort: http
+      name: http-default
   selector:
     {{- include "identity.keycloak.selectorLabels" . | nindent 4 }}
   type: ClusterIP

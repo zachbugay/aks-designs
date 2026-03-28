@@ -18,6 +18,9 @@ spec:
     - keycloak.identity.svc.cluster.local
   ports:
     - number: 8080
+      name: http-alt
+      protocol: HTTP
+    - number: 80
       name: http
       protocol: HTTP
   location: MESH_INTERNAL
