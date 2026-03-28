@@ -52,11 +52,13 @@ Deployment is organized into four Helm charts, managed by ArgoCD via sync waves:
 | 1 | `infra-base` | `infra` | SecretProviderClass, secrets-sync Deployment, PostSync secrets verification hook |
 | 2 | `gateway` | `infra` | ApplicationLoadBalancer, Gateway, FrontendTLSPolicy, Keycloak HTTPRoute, PostSync DuckDNS update hook |
 | 2 | `identity` | `identity` | Keycloak StatefulSet, Postgres Deployment, ReferenceGrant |
-| 3 | `tenant` (ApplicationSet) | `<tenant-name>` | Namespace (with Istio sidecar injection), NetworkPolicy (deny-all + DNS), CiliumNetworkPolicy (L3/L4), Istio AuthorizationPolicy (L7), React App, API Service, HealthCheckPolicies, HTTPRoute, ReferenceGrant, PostSync Keycloak realm init hook |
+| 3 | `tenant` (ApplicationSet) | `<tenant-name>` | Namespace (with Istio sidecar injection), NetworkPolicy (deny-all + DNS), CiliumNetworkPolicy (L3/L4), Istio AuthorizationPolicy (L7), Istio ServiceEntry (Keycloak ports 8080 + 80), React App, API Service, HealthCheckPolicies, HTTPRoute, ReferenceGrant, PostSync Keycloak realm init hook |
 
 **Why this order matters:** `infra-base` must complete before `gateway` because it creates the `SecretProviderClass` and `secrets-sync` pod that pull TLS certificates from Azure Key Vault into Kubernetes Secrets (`gateway-tls-secret` and `ca.bundle`). A PostSync hook verifies these secrets exist before ArgoCD proceeds to wave 2. The `gateway` chart references those Secrets for HTTPS termination and mTLS.
 
 **Zero-trust tenant networking:** Each tenant namespace enforces defense in depth. Kubernetes NetworkPolicy establishes a deny-all baseline (ingress and egress) with only DNS allowed. CiliumNetworkPolicy selectively opens L3/L4 ports for each workload (API ingress, Keycloak egress for JWT validation, Istio control plane). Istio AuthorizationPolicy restricts L7 HTTP methods and paths. Cross-tenant traffic is denied at all layers.
+
+**Keycloak port 80 mapping:** The Keycloak Service exposes both port 8080 (primary) and port 80, both targeting the same container port. This is required because Istio's Envoy sidecar strips non-standard ports from the `Host` header when proxying requests. Keycloak then generates OIDC metadata URLs using the default HTTP port (e.g., `http://keycloak.identity.svc.cluster.local/realms/<tenant>/.well-known/openid-configuration`). When the API pod's JWT middleware follows those URLs to fetch JWKS signing keys, the request targets port 80. Without this mapping, JWKS key retrieval fails and all authenticated API calls return 401. The Istio ServiceEntry in the tenant chart and the CiliumNetworkPolicy egress rule both include port 80 for the same reason.
 
 ## Prerequisites
 
