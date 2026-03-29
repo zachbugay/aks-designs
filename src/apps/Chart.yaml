@@ -2,5 +2,5 @@ apiVersion: v2
 name: apps
 description: ArgoCD App of Apps - bootstraps all application charts
 version: 0.1.0
-appVersion: "0.1.12"
+appVersion: "0.1.13"
 type: application
