@@ -147,7 +147,7 @@ Write-Host "Password: $argoPass"
 kubectl port-forward svc/argocd-server -n argocd 8443:443
 ```
 
-Open https://localhost:8443 and login with `admin` and the password above.
+Open [https://localhost:8443](https://localhost:8443) and login with `admin` and the password above.
 
 ## Tear Down
 
