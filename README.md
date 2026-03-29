@@ -157,28 +157,66 @@ azd down --force --purge
 
 ## Adding Additional Tenants
 
-Run `New-Tenant.ps1` to create the tenant values file, then commit and push. The ArgoCD ApplicationSet detects the new file and deploys the tenant automatically, including the Keycloak realm init and DuckDNS update (via PostSync hooks).
+> **Note:** Terraform outputs like `ACR_NAME` and `IDENTITY_PROVIDER_HOSTNAME` are stored in `.azure/<env name>/.env` but are **not** automatically loaded into your shell environment. Load them first before running any of the steps below.
 
-> **Note:** Terraform outputs like `ACR_NAME` and `IDENTITY_PROVIDER_HOSTNAME` are stored in `.azure/<env name>/.env` but are **not** automatically loaded into your shell environment. Open that file to look up the values you need, or source them first:
->
-> ```PowerShell
-> # Load all azd env vars into the current shell
-> azd env get-values | ForEach-Object { if ($_ -match '^([^=]+)=(.*)$') { [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2].Trim('"')) } }
-> ```
+### 1. Load azd environment variables
+
+```PowerShell
+azd env get-values | ForEach-Object {
+    if ($_ -match '^([^=]+)=(.*)$') {
+        [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2].Trim('"'))
+    }
+}
+```
+
+### 2. Create the tenant values file
 
 ```PowerShell
 ./src/weather-app/New-Tenant.ps1 `
     -TenantNames "zach-c" `
     -AcrName $env:ACR_NAME `
     -IdentityProviderHostname $env:IDENTITY_PROVIDER_HOSTNAME
-
-git add src/tenants/ && git commit -m "Add tenant zach-c" && git push
 ```
 
-If the new tenant uses a hostname not covered by the existing server certificate SANs, re-run `Initialize-Certs.ps1` to regenerate and upload certificates (it auto-discovers hostnames from tenant values files):
+This creates `src/tenants/zach-c/values.yaml` with the tenant name, ACR name, app hostname (`zach-c.duckdns.org`), and identity provider hostname.
+
+### 3. Regenerate TLS certificates
+
+`Initialize-Certs.ps1` auto-discovers hostnames from all `src/tenants/*/values.yaml` files. When it detects a new `appHostname` not covered by the existing server certificate SANs, it re-signs the server certificate and uploads it to Key Vault.
 
 ```PowerShell
-& src/weather-app/Initialize-Certs.ps1
+& ./src/weather-app/Initialize-Certs.ps1
+```
+
+### 4. Update DuckDNS for the new hostname
+
+Point the new tenant's DuckDNS hostname at the gateway's external IP address:
+
+```PowerShell
+$ip = & ./src/weather-app/Get-GatewayIpAddress.ps1
+
+./src/weather-app/Update-DuckDns.ps1 `
+    -Token $env:DUCKDNS_TOKEN `
+    -Hostnames "zach-c.duckdns.org" `
+    -IpAddress $ip
+```
+
+### 5. Regenerate and apply the ArgoCD root application
+
+`postdeploy.ps1` rebuilds `src/root-application.json` from discovered tenants (adding `zach-c.duckdns.org` to the `duckdns.hostnames` array) and applies it to the cluster:
+
+```PowerShell
+./hooks/postdeploy.ps1
+```
+
+### 6. Commit and push
+
+ArgoCD pulls from the remote Git repository, so changes must be pushed before they take effect. The ApplicationSet detects the new tenant values file and deploys the tenant automatically, including the Keycloak realm init (via PostSync hooks).
+
+```PowerShell
+git add src/tenants/ src/root-application.json
+git commit -m "Add tenant zach-c"
+git push
 ```
 
 ### Managing tenants
