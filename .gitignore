@@ -39,6 +39,7 @@ bld/
 *.VisualState.xml
 TestResult.xml
 [Tt]est[Rr]esult*/
+*.lscache
 
 # Rider
 .idea/
