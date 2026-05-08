@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6" pages="2">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" pages="2">
   <diagram id="hub-and-spoke" name="Hub and Spoke Architecture">
-    <mxGraphModel dx="2611" dy="1657" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+    <mxGraphModel dx="2352" dy="2160" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -167,16 +167,16 @@
         <mxCell id="TbANe7_rcZB4XjTmFNZs-1" edge="1" parent="1" source="internet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="snet-aks-lb">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1693" y="620" />
+              <mxPoint x="1453" y="620" />
               <mxPoint x="935" y="620" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="internet" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=11;fontStyle=1;image=img/lib/azure2/general/Globe.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="Internet" vertex="1">
-          <mxGeometry height="65" width="65" x="1660" y="110" as="geometry" />
+          <mxGeometry height="65" width="65" x="1420" y="125.34" as="geometry" />
         </mxCell>
         <mxCell id="duckdns" parent="1" style="aspect=fixed;html=1;align=center;image;fontSize=9;image=img/lib/azure2/networking/DNS_Zones.svg;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;" value="DuckDNS&#xa;(Dynamic DNS)" vertex="1">
-          <mxGeometry height="40" width="40" x="1672.5" y="224.65999999999997" as="geometry" />
+          <mxGeometry height="40" width="40" x="1432.5" y="239.99999999999997" as="geometry" />
         </mxCell>
         <mxCell id="tD-xxvFhnIprlfOTcpgN-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Azure_Firewall_Policy.svg;" value="Azure Firewall Policy" vertex="1">
           <mxGeometry height="49.32" width="68" x="630" y="220" as="geometry" />
@@ -207,9 +207,6 @@
         </mxCell>
         <mxCell id="XfheLayf1cOMn2U_JcD4-2" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/Key.svg;" value="" vertex="1">
           <mxGeometry height="50" width="31" x="-51" y="-60" as="geometry" />
-        </mxCell>
-        <mxCell id="NyzM8N4PPN17VlyZSQKN-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="60" width="120" x="-1110" y="480" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
