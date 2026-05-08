@@ -82,7 +82,7 @@ resource "azurerm_role_assignment" "network_contributor" {
 
 module "aks" {
   source    = "Azure/avm-res-containerservice-managedcluster/azurerm"
-  version   = "0.5.3"
+  version   = "0.5.4"
   location  = data.azurerm_resource_group.rg.location
   name      = coalesce(var.custom_name, azurecaf_name.this.result)
   parent_id = data.azurerm_resource_group.rg.id

@@ -1,13 +1,13 @@
 terraform {
-  required_version = "~> 1.14.5"
+  required_version = "> 1.14.5"
   required_providers {
     azurecaf = {
       source  = "aztfmod/azurecaf"
-      version = "~> 1.2.31"
+      version = "~> 1.2.32"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.64.0"
+      version = "~> 4.72.0"
     }
     cloudinit = {
       source  = "hashicorp/cloudinit"
@@ -15,7 +15,7 @@ terraform {
     }
     local = {
       source  = "hashicorp/local"
-      version = "~> 2.7.0"
+      version = "~> 2.8.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -27,7 +27,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 3.0.1"
+      version = "~> 3.1.0"
     }
     tls = {
       source  = "hashicorp/tls"
