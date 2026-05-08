@@ -37,6 +37,14 @@ app.kubernetes.io/component: tls-policy
 {{- end }}
 
 {{/*
+HTTP-to-HTTPS redirect HTTPRoute labels for metadata.
+*/}}
+{{- define "gateway.httpRedirect.labels" -}}
+{{ include "gateway.labels" . }}
+app.kubernetes.io/name: http-to-https-redirect
+app.kubernetes.io/component: route
+{{- end }}
+{{/*
 Keycloak HTTPRoute labels for metadata.
 */}}
 {{- define "gateway.routeKeycloak.labels" -}}

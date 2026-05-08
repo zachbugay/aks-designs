@@ -9,6 +9,7 @@ spec:
   parentRefs:
     - name: agc-gateway
       namespace: infra
+      sectionName: https
   hostnames:
     - {{ .Values.identityProviderHostname | quote }}
   rules:
