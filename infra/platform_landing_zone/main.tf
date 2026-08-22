@@ -37,7 +37,7 @@ locals {
 }
 
 module "pattern_hub_and_spoke" {
-  source = "./modules/pattern_hub_and_spoke"
+  source = "../modules/pattern_hub_and_spoke"
 
   address_space_hub                                = ["10.100.0.0/22"]
   address_space_spoke_aks                          = ["10.100.12.0/22"]

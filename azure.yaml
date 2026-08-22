@@ -2,8 +2,15 @@
 
 name: aks-designs
 infra:
-  provider: terraform
-  module: main
+    layers:
+      - name: platform
+        provider: terraform
+        module: main
+        path: ./infra/platform_landing_zone
+      - name: aks
+        provider: terraform
+        module: main
+        path: ./infra/application_landing_zone
 hooks:
   postprovision:
     shell: sh
