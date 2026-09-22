@@ -3,6 +3,7 @@
 set -euo
 
 missing=0
+
 _require_env() {
   if [ -z "$2" ]; then
     echo "Missing required environment variable: $1" >&2
@@ -29,8 +30,7 @@ az aks get-credentials \
   --name "$AZURE_AKS_CLUSTER_NAME" \
   --overwrite-existing
 
-if kubectl --context="$AZURE_AKS_CLUSTER_NAME" \
-  get gitrepository flux-system -n flux-system >/dev/null 2>&1; then
+if kubectl --context="$AZURE_AKS_CLUSTER_NAME" get gitrepository flux-system -n flux-system >/dev/null 2>&1; then
   echo "Flux is already bootstrapped on '$AZURE_AKS_CLUSTER_NAME'; skipping bootstrap."
   exit 0
 fi
