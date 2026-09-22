@@ -63,8 +63,8 @@ spec:
               value: /etc/httpbin/tls/tls.crt
             - name: HTTPS_KEY_FILE
               value: /etc/httpbin/tls/tls.key
-            - name: HTTPS_CLIENT_CA
-              value: /etc/httpbin/ca/ca.crt
+            #  name: HTTPS_CLIENT_CA
+            #   value: /etc/httpbin/ca/ca.crt
           ports:
             - containerPort: 8080
           volumeMounts:
