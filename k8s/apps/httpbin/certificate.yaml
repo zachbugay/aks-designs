@@ -22,8 +22,6 @@ spec:
     kind: ClusterIssuer
     group: cert-manager.io
 ---
-# Certificate for the Gateway -> httpbin backend (upstream) TLS connection,
-# consumed by the httpbin BackendTLSPolicy.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
