@@ -133,7 +133,7 @@ variable "disable_local_accounts" {
 variable "kubernetes_version" {
   description = "(Optional) Kubernetes version"
   type        = string
-  default     = "1.34.2"
+  default     = "1.36.3"
 }
 
 variable "private_api_server" {

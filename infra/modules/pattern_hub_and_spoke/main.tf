@@ -211,31 +211,32 @@ module "spoke_aks" {
   address_space                                    = var.address_space_spoke_aks
   admin_object_ids                                 = var.admin_object_ids
   alert_email                                      = var.alert_email
-  application_gateway_for_containers               = var.application_gateway_for_containers
   application_gateway                              = var.application_gateway
+  application_gateway_backend_ip_addresses         = ["10.100.12.250"]
+  application_gateway_for_containers               = var.application_gateway_for_containers
   application_gateway_trusted_root_certificate_pem = var.application_gateway_trusted_root_certificate_pem
-  # TODO: This needs to be more dynamic some how.
-  application_gateway_backend_ip_addresses = ["10.100.12.250"]
-  authorized_ip_ranges                     = local.authorized_ip_ranges
-  dns_servers                              = local.vnet_dns_servers
-  enable_private_api_server                = var.enable_private_api_server
-  environment                              = var.workload_environment
-  firewall                                 = var.firewall.enabled
-  gateway_exists                           = var.gateway
-  hub_resource_group_name                  = module.hub.resource_group_name
-  hub_virtual_network_id                   = module.hub.virtual_network_id
-  instance                                 = var.instance
-  key_vault_private_dns_zone_resource_id   = local.spoke_dns_enabled ? module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"] : null
-  location                                 = var.location
-  log_analytics_workspace_id               = module.hub.log_analytics_workspace_id
-  monitor_workspace_id                     = module.hub.azure_monitor_workspace_id
-  private_dns_zone_id                      = local.spoke_dns_enabled ? module.spoke_dns[0].private_dns_zones["privatelink.${var.location}.azmk8s.io"]["id"] : null
-  random_string                            = var.random_string
-  subnets_next_hop                         = var.firewall.enabled ? module.hub.firewall_private_ip : null
-  tags                                     = local.tags
-  tenant_id                                = var.tenant_id
-  vm_size                                  = var.vm_size
-  workload                                 = "ent-apps"
+  authorized_ip_ranges                             = local.authorized_ip_ranges
+  dns_servers                                      = local.vnet_dns_servers
+  enable_private_api_server                        = var.enable_private_api_server
+  environment                                      = var.workload_environment
+  firewall                                         = var.firewall.enabled
+  gateway_exists                                   = var.gateway
+  kubernetes_version                               = var.aks_kubernetes_version
+  hub_resource_group_name                          = module.hub.resource_group_name
+  hub_virtual_network_id                           = module.hub.virtual_network_id
+  instance                                         = var.instance
+  key_vault_private_dns_zone_resource_id           = local.spoke_dns_enabled ? module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"] : null
+  location                                         = var.location
+  log_analytics_workspace_id                       = module.hub.log_analytics_workspace_id
+  monitor_workspace_id                             = module.hub.azure_monitor_workspace_id
+  private_dns_zone_id                              = local.spoke_dns_enabled ? module.spoke_dns[0].private_dns_zones["privatelink.${var.location}.azmk8s.io"]["id"] : null
+  private_endpoint_subnet_resource_id              = module.hub.private_endpoint_subnet_id
+  random_string                                    = var.random_string
+  subnets_next_hop                                 = var.firewall.enabled ? module.hub.firewall_private_ip : null
+  tags                                             = local.tags
+  tenant_id                                        = var.tenant_id
+  vm_size                                          = var.vm_size
+  workload                                         = "ent-apps"
 
   application_gateway_applications = {
     httpbin = {
@@ -292,15 +293,20 @@ module "spoke_aks" {
 # directly to the virtual network hosting the Application Gateway, even when the virtual network
 # uses custom DNS servers.
 # https://learn.microsoft.com/azure/application-gateway/key-vault-certs
-resource "azurerm_private_dns_zone_virtual_network_link" "aks_spoke_key_vault" {
-  count                = local.spoke_dns_enabled ? 1 : 0
-  name                 = "link-aks-spoke-vaultcore-${var.random_string}"
-  private_dns_zone_id  = module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"]
-  virtual_network_id   = module.spoke_aks.virtual_network_id
-  registration_enabled = false
-  tags                 = local.tags
-}
 
+# 09/22/2026: I am going to try something different. The PE can live where it is at.
+# However, the subnet should not be a aks subnet, but rather the hub's PE subnet. 
+
+# 09/22/2026: Remove the link directly to the AKS Vnet. 
+# resource "azurerm_private_dns_zone_virtual_network_link" "aks_spoke_key_vault" {
+#   count               = local.spoke_dns_enabled ? 1 : 0
+#   name                = "link-aks-spoke-vaultcore-${var.random_string}"
+#   private_dns_zone_id = module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"]
+#   virtual_network_id   = module.spoke_aks.virtual_network_id
+#   registration_enabled = false
+#   tags                 = local.tags
+# }
+#
 module "data_collection_rule_association" {
   source                  = "../base_modules/monitor_data_collection_rule_association"
   for_each                = var.private_monitoring ? merge([for k, v in module.spoke : v.virtual_machines]...) : {}
@@ -470,7 +476,7 @@ module "private_key_vault" {
   key_vault_private_dns_zone_resource_id = module.spoke_dns[0].private_dns_zones["privatelink.vaultcore.azure.net"]["id"]
   location                               = module.locations.name
   private_endpoint_subnet_resource_id    = module.hub.private_endpoint_subnet_id
-  public_network_access_enabled          = true # TODO: Just for now while testing.
+  public_network_access_enabled          = false
   key_vault_administrators               = var.admin_object_ids
   random_string                          = var.random_string
   resource_group_name                    = module.hub.resource_group_management_name

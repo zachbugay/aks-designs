@@ -2,10 +2,19 @@
 
 name: aks-designs
 infra:
-  provider: terraform
-  module: main
-hooks:
-  postprovision:
-    shell: sh
-    run: ./scripts/postprovision.sh
+    layers:
+      - name: platform
+        provider: terraform
+        module: main
+        path: ./infra/landing_zones/platform_landing_zone
+      - name: aks
+        provider: terraform
+        module: main
+        path: ./infra/landing_zones/application_landing_zone
+        dependsOn:
+          - platform
+        hooks:
+          postprovision:
+            shell: sh
+            run: ./hooks/postprovision.sh
 

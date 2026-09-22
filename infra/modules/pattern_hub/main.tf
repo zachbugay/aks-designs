@@ -350,13 +350,15 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
   dynamic "application_rule_collection" {
     for_each = var.firewall.sku_tier != "Basic" ? [1] : []
     content {
-      name     = "application_rule_collection_aks_internal_fqdn"
+      name     = "application_rule_collection_azure_internal_fqdn_tags"
       priority = 500
       action   = "Allow"
       rule {
-        name                  = "aks-service-fqdn"
-        source_addresses      = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
-        destination_fqdn_tags = ["AzureKubernetesService"]
+        name             = "aks-service-fqdn"
+        source_addresses = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+        destination_fqdn_tags = [
+          "AzureKubernetesService",
+        ]
         protocols {
           type = "Http"
           port = 80
