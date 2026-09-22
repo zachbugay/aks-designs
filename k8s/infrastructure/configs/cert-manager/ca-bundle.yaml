@@ -10,7 +10,7 @@ spec:
         key: ca.crt
   target:
     configMap:
-      key: ca-bundle.crt
+      key: ca.crt
     namespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: apps
