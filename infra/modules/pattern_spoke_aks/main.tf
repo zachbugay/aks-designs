@@ -16,9 +16,8 @@ locals {
   #   [1] aks-alb /24               10.100.13.0/24
   #   [2] agw-24 /24                10.100.14.0/24
   #   [3] aks-api-server /28        10.100.15.0/28
-  #   [4] aks-private-endpoints /28 10.100.15.16/28
 
-  aks_subnets = cidrsubnets(var.address_space[0], 2, 2, 2, 6, 6)
+  aks_subnets = cidrsubnets(var.address_space[0], 2, 2, 2, 6)
 
   subnets = [
     {
@@ -61,13 +60,6 @@ locals {
       }
       service_endpoint = []
       subnet           = local.aks_subnets[3]
-    },
-    {
-      workload         = "aks-private-endpoints", // Hosts private endpoints for this spoke
-      instance         = "001"
-      delegation       = {}
-      service_endpoint = []
-      subnet           = local.aks_subnets[4]
     }
   ]
 
@@ -346,7 +338,7 @@ module "private_key_vault" {
   instance                               = var.instance
   key_vault_private_dns_zone_resource_id = var.key_vault_private_dns_zone_resource_id
   location                               = var.location
-  private_endpoint_subnet_resource_id    = var.private_endpoint_subnet_resource_id # module.subnets["aks-private-endpoints"].id
+  private_endpoint_subnet_resource_id    = var.private_endpoint_subnet_resource_id
   random_string                          = var.random_string
   resource_group_name                    = module.resource_group.name
   tags                                   = local.tags
