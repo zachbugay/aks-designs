@@ -126,3 +126,9 @@ Only if the CA changes. `demo-ca-certificate.yaml` pins `duration: 2160h` (90day
 leaving it at the default would rotate the CA key on every renewal and silently break the
 Application Gateway trusted root. If you ever delete the `demo-ca` Secret or shorten the duration,
 repeat steps 2-4.
+
+
+## TODO: 
+- The k8s/infrastructure/configs/gateway/gateway.yaml annotations need updated with the correct subnet, dynamically.
+- The agw needs to have its backend pool IP updated to the internal load balancer created.
+- Spoke AKS should create the AKS cluster, and that's it. My Application Landing Zone should create and configure my AGW. 

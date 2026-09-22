@@ -1,21 +1,19 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: podinfo-cert
-  namespace: default
+  name: gateway-backend-client-cert
+  namespace: apps
 spec:
-  secretName: podinfo-cert
+  secretName: gateway-backend-client-tls
   duration: 2160h # 90d
   renewBefore: 360h # 15d
-  commonName: zachb-podinfo.duckdns.org
-  dnsNames:
-    - zachb-podinfo.duckdns.org
+  commonName: demo-gateway-client
   privateKey:
     algorithm: ECDSA
     size: 256
     rotationPolicy: Always
   usages:
-    - server auth
+    - client auth
     - digital signature
     - key encipherment
   issuerRef:

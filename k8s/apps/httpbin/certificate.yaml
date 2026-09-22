@@ -1,4 +1,3 @@
-# https://cert-manager.io/docs/usage/certificate/
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -11,10 +10,35 @@ spec:
   commonName: zachb-httpbin.duckdns.org
   dnsNames:
     - zachb-httpbin.duckdns.org
-  # Application Gateway v2 only trusts RSA rooted backend chains.
   privateKey:
-    algorithm: RSA
-    size: 2048
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+  issuerRef:
+    name: demo-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Certificate for the Gateway -> httpbin backend (upstream) TLS connection,
+# consumed by the httpbin BackendTLSPolicy.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: httpbin-backend-cert
+spec:
+  secretName: httpbin-backend-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  commonName: httpbin.apps.svc.cluster.local
+  dnsNames:
+    - httpbin.apps.svc.cluster.local
+  privateKey:
+    algorithm: ECDSA
+    size: 256
     rotationPolicy: Always
   usages:
     - server auth
