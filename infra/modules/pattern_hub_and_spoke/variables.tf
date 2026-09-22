@@ -288,6 +288,12 @@ variable "vm_size" {
   default     = "Standard_D2as_v7"
 }
 
+variable "aks_kubernetes_version" {
+  description = "(Optional) Kubernetes version"
+  type        = string
+  default     = "1.36.3"
+}
+
 variable "vpn_auth_types" {
   description = "(Optional) The Point-to-Site authentication types to enable on the Virtual Network Gateway."
   type        = list(string)

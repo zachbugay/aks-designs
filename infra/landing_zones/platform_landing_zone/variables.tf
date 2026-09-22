@@ -4,6 +4,12 @@ variable "aks_node_pool_vm_size" {
   default     = "Standard_D4as_v7"
 }
 
+variable "aks_kubernetes_version" {
+  description = "(Optional) Kubernetes version"
+  type        = string
+  default     = "1.36.3"
+}
+
 variable "location" {
   description = "The Azure region for the specified resources."
   type        = string

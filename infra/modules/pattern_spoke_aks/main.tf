@@ -307,18 +307,19 @@ module "aks" {
 
   admin_object_ids             = var.admin_object_ids
   aks_alb_snet                 = module.subnets["aks-alb"].id
-  private_api_server_subnet_id = module.subnets["aks-api-server"].id
   aks_vnet_id                  = module.virtual_network.id
   alert_email                  = var.alert_email
   authorized_ip_ranges         = var.authorized_ip_ranges
   container_registry_id        = module.acr.id
   environment                  = var.environment
   instance                     = var.instance
+  kubernetes_version           = var.kubernetes_version
   location                     = var.location
   log_analytics_workspace_id   = var.log_analytics_workspace_id
   monitor_workspace_id         = var.monitor_workspace_id
   outbound_type                = "userDefinedRouting"
   private_api_server           = var.enable_private_api_server
+  private_api_server_subnet_id = module.subnets["aks-api-server"].id
   private_dns_zone_id          = var.private_dns_zone_id
   random_string                = var.random_string
   resource_group_name          = module.resource_group.name
@@ -345,7 +346,7 @@ module "private_key_vault" {
   instance                               = var.instance
   key_vault_private_dns_zone_resource_id = var.key_vault_private_dns_zone_resource_id
   location                               = var.location
-  private_endpoint_subnet_resource_id    = module.subnets["aks-private-endpoints"].id
+  private_endpoint_subnet_resource_id    = var.private_endpoint_subnet_resource_id # module.subnets["aks-private-endpoints"].id
   random_string                          = var.random_string
   resource_group_name                    = module.resource_group.name
   tags                                   = local.tags

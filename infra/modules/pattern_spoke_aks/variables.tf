@@ -46,6 +46,12 @@ variable "vm_size" {
   default     = "Standard_D2as_v7"
 }
 
+variable "kubernetes_version" {
+  description = "(Optional) Kubernetes version"
+  type        = string
+  default     = "1.36.3"
+}
+
 variable "authorized_ip_ranges" {
   description = "(Optional) IP Address ranges to grant access to the cluster."
   type        = list(string)
@@ -275,6 +281,10 @@ variable "private_dns_zone_id" {
   default     = ""
 }
 
+variable "private_endpoint_subnet_resource_id" {
+  description = "(Required) The resource ID of the hub subnet in which to create the private endpoint."
+  type        = string
+}
 
 variable "application_gateway" {
   description = "(Optional) Deploy an Application Gateway in front of the cluster's in-cluster gateway."
