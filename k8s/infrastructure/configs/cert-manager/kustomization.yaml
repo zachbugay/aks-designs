@@ -5,3 +5,4 @@ resources:
   - ca-bundle.yaml
   - ca-cluster-issuer.yaml
   - certificate-request-policy.yaml
+  - cluster-issuer-and-ca.yaml
