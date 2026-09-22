@@ -6,13 +6,13 @@ infra:
       - name: platform
         provider: terraform
         module: main
-        path: ./infra/platform_landing_zone
-      - name: aks
-        provider: terraform
-        module: main
-        path: ./infra/application_landing_zone
-hooks:
-  postprovision:
-    shell: sh
-    run: ./scripts/postprovision.sh
+        path: ./infra/landing_zones/platform_landing_zone
+#       - name: aks
+#         provider: terraform
+#         module: main
+#         path: ./infra/landing_zones/application_landing_zone
+# # hooks:
+#   postprovision:
+#     shell: sh
+#     run: ./scripts/postprovision.sh
 

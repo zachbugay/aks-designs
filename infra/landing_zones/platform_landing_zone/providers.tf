@@ -3,12 +3,14 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 5.0.0"
+      version = "~> 5.6.0"
     }
+    # https://registry.terraform.io/providers/aztfmod/azurecaf/1.2.34
     azurecaf = {
       source  = "aztfmod/azurecaf"
       version = "~> 1.2.34"
     }
+    # https://registry.terraform.io/providers/Azure/azapi/latest
     azapi = {
       source  = "azure/azapi"
       version = "~> 2.12"
@@ -17,21 +19,23 @@ terraform {
     #   source  = "azurerm/locations/azure"
     #   version = "~> 0.2.10"
     # }
+    # https://registry.terraform.io/providers/hashicorp/cloudinit/latest
     cloudinit = {
       source  = "hashicorp/cloudinit"
-      version = "~> 2.4.0"
+      version = "~> 2.4.1"
     }
+    # https://registry.terraform.io/providers/hashicorp/local/latest
     local = {
       source  = "hashicorp/local"
-      version = "~> 2.9.0"
+      version = "~> 2.9.1"
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.9.0"
+      version = "~> 3.9.1"
     }
     tls = {
       source  = "hashicorp/tls"
-      version = "~> 4.3.0"
+      version = "~> 4.4.1"
     }
   }
 }
