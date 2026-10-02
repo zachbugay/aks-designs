@@ -38,9 +38,7 @@ module "spoke_aks" {
   admin_object_ids                                 = local.admin_object_ids
   alert_email                                      = var.alert_email
   application_gateway                              = var.application_gateway
-  application_gateway_backend_ip_addresses         = ["10.100.12.8"]
   application_gateway_for_containers               = var.application_gateway_for_containers
-  application_gateway_trusted_root_certificate_pem = var.application_gateway_trusted_root_certificate_pem
   authorized_ip_ranges                             = var.authorized_ip_ranges
   deployment_token                                 = random_string.deployment_token
   dns_servers                                      = var.dns_servers

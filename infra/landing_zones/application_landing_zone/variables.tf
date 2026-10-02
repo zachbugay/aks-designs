@@ -143,7 +143,7 @@ variable "application_gateway" {
   })
   default     = {
     enabled = false
-    backend_ip_addresses = []
+    backend_ip_addresses = [] # ["10.100.12.8"]
     certificate_common_name = null
     trusted_root_certificate_pem = null
   }
@@ -186,4 +186,16 @@ variable "authorized_ip_ranges" {
   description = "(Optional) IP Address ranges to grant access to the cluster."
   type        = list(string)
   default     = null
+}
+
+variable "application_gateway_for_containers" {
+  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
+  type        = bool
+  default     = false
+}
+
+variable "application_gateway_backend_ip_addresses" {
+  description = "(Optional) The backend IP addresses of the Application Gateway, typically the internal load balancer IP of the gateway in the AKS cluster."
+  type        = list(string)
+  default     = []
 }
