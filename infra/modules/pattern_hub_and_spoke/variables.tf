@@ -60,19 +60,19 @@ variable "firewall" {
   }
 }
 
-variable "gateway" {
-  description = "(Optional) Include a Gateway."
+variable "virtual_network_gateway" {
+  description = "(Optional) Include a VPN Gateway."
   type        = bool
   default     = true
 }
 
-variable "gateway_type" {
+variable "virtual_network_gateway_type" {
   description = "(Optional) The type of the Gateway."
   type        = string
   default     = "Vpn"
 }
 
-variable "gateway_sku" {
+variable "virtual_network_gateway_sku" {
   description = "(Optional) The SKU of the Gateway."
   type        = string
   default     = "VpnGw1AZ"
@@ -162,26 +162,14 @@ variable "address_space_spoke_dmz" {
   default     = null
 }
 
-variable "address_space_spoke_aks" {
-  description = "(Optional) The address space that is used the Virtual Network."
-  type        = list(string)
-  default     = null
-}
-
-variable "enable_private_api_server" {
-  description = "(Optional) Whether or not the Kubernetes API Server should be privately accessible"
-  type        = bool
-  default     = false
-}
-
 variable "tenant_id" {
-  description = "(Optional) Tenant ID for AKS"
+  description = "(Optional) Tenant ID."
   type        = string
   default     = null
 }
 
 variable "admin_object_ids" {
-  description = "(Optional) Object ID of admin group for AKS."
+  description = "(Optional) Object IDs that shall have admin rights."
   type        = list(string)
   default     = null
 }
@@ -247,51 +235,14 @@ variable "tags" {
 }
 
 variable "alert_email" {
-  description = "(Optional) An email to send alerts to for AKS."
+  description = "(Optional) An email to send alerts to."
   type        = string
 }
 
-# TODO: Differentiate between AGW scoped to hub, and AGW scoped to the AKS spoke.
-variable "application_gateway" {
-  description = "(Optional) Deploy an Application Gateway with WAF for inbound L7 traffic."
-  type        = bool
-  default     = false
-}
-
-variable "appgw_backend_ip_addresses" {
-  description = "(Optional) Backend IP addresses for the Application Gateway (e.g., Istio internal LB IP)."
-  type        = list(string)
-  default     = []
-}
-
-variable "random_string" {
+variable "deployment_token" {
   description = "(Optional) A random string suffix to ensure all resources in a deployment share the same identifier."
   type        = string
   default     = ""
-}
-
-variable "application_gateway_trusted_root_certificate_pem" {
-  description = "(Optional) PEM encoded root certificate that signs the backend TLS certificates presented by the in-cluster gateway. When null, the default trusted certificate authorities are used."
-  type        = string
-  default     = null
-}
-
-variable "application_gateway_for_containers" {
-  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
-  type        = bool
-  default     = false
-}
-
-variable "vm_size" {
-  description = "VM Size for AKS node pools."
-  type        = string
-  default     = "Standard_D2as_v7"
-}
-
-variable "aks_kubernetes_version" {
-  description = "(Optional) Kubernetes version"
-  type        = string
-  default     = "1.36.3"
 }
 
 variable "vpn_auth_types" {

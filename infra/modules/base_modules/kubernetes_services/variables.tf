@@ -242,7 +242,7 @@ variable "alert_email" {
   type        = string
 }
 
-variable "random_string" {
+variable "deployment_token" {
   description = "(Optional) A random string suffix to ensure all resources in a deployment share the same identifier."
   type        = string
   default     = ""

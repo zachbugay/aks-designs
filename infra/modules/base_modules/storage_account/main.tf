@@ -18,7 +18,7 @@ resource "azurecaf_name" "this" {
   name          = var.workload
   resource_type = "azurerm_storage_account"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 

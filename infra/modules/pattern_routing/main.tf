@@ -15,7 +15,7 @@ locals {
 
 module "route_table" {
   source                        = "../base_modules/route_table"
-  random_string                 = var.random_string
+  deployment_token                 = var.deployment_token
   custom_name                   = var.custom_name
   location                      = var.location
   environment                   = var.environment

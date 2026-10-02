@@ -22,7 +22,7 @@ module "locations" {
 resource "azurerm_nat_gateway" "this" {
   resource_group_name     = var.resource_group_name
   location                = module.locations.name
-  name                    = "${var.environment}-ng-${var.random_string}-${local.instance}"
+  name                    = "${var.environment}-ng-${var.deployment_token}-${local.instance}"
   sku_name                = var.sku
   zones                   = var.zones
   idle_timeout_in_minutes = var.idle_timeout_in_minutes

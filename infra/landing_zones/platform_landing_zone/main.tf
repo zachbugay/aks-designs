@@ -23,7 +23,7 @@ data "azurerm_subscription" "current" {}
 
 data "azurerm_client_config" "current" {}
 
-resource "random_string" "deployment" {
+resource "random_string" "deployment_token" {
   length  = 4
   special = false
   upper   = false
@@ -40,31 +40,25 @@ module "pattern_hub_and_spoke" {
   source = "../../modules/pattern_hub_and_spoke"
 
   address_space_hub                                = ["10.100.0.0/22"]
-  address_space_spoke_aks                          = ["10.100.12.0/22"]
   address_space_spoke_dns                          = ["10.100.4.0/24"]
-  address_space_spoke_private_monitoring           = ["10.100.5.0/27"]
+  address_space_spoke_private_monitoring           = ["10.100.5.0/24"]
   admin_object_ids                                 = local.admin_object_ids
   alert_email                                      = var.alert_email
-  application_gateway                              = true
-  application_gateway_for_containers               = false
-  application_gateway_trusted_root_certificate_pem = local.agw_root_cert_pem
   bastion                                          = false
   connection_monitor                               = true
   environment                                      = var.environment
-  enable_private_api_server                        = true
   firewall                                         = var.firewall
-  gateway                                          = var.virtual_network_gateway
+  virtual_network_gateway                          = var.virtual_network_gateway
   p2s_vpn                                          = local.p2s_vpn_enabled
   vpn_auth_types                                   = local.vpn_auth_types
   location                                         = var.location
   nat_gateway_public_ip_count                      = var.nat_gateway_public_ip_count
   network_security_group                           = true
   private_monitoring                               = true
-  random_string                                    = random_string.deployment.result
+  deployment_token                                 = random_string.deployment_token.result
   spoke_dns                                        = true
   tenant_id                                        = var.tenant_id
   update_management                                = true
-  vm_size                                          = var.aks_node_pool_vm_size
   workload                                         = "shared-hub"
   workload_environment                             = var.workload_environment
 

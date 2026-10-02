@@ -13,7 +13,7 @@ locals {
 
 module "resource_group" {
   source        = "../base_modules/resource_group"
-  random_string = var.random_string
+  deployment_token = var.deployment_token
   location      = var.location
   environment   = var.environment
   workload      = var.workload
@@ -23,7 +23,7 @@ module "resource_group" {
 
 module "virtual_network" {
   source              = "../base_modules/virtual_network"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   location            = var.location
   workload            = var.workload
   instance            = var.instance
@@ -35,7 +35,7 @@ module "virtual_network" {
 
 module "subnet_inbound" {
   source               = "../base_modules/subnet"
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   location             = var.location
   environment          = var.environment
   workload             = "in"
@@ -53,7 +53,7 @@ module "subnet_inbound" {
 
 module "routing_inbound" {
   source              = "../pattern_routing"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   environment         = var.environment
   instance            = var.instance
   location            = var.location
@@ -73,7 +73,7 @@ module "subnet_outbound" {
   environment          = var.environment
   instance             = var.instance
   location             = var.location
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   resource_group_name  = module.resource_group.name
   virtual_network_name = module.virtual_network.name
   workload             = "out"
@@ -87,7 +87,7 @@ module "subnet_outbound" {
 
 module "routing_outbound" {
   source              = "../pattern_routing"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   environment         = var.environment
   instance            = var.instance
   location            = var.location
@@ -103,7 +103,7 @@ module "routing_outbound" {
 
 module "private_dns_resolver" {
   source                      = "../base_modules/private_dns_resolver"
-  random_string               = var.random_string
+  deployment_token               = var.deployment_token
   location                    = var.location
   environment                 = var.environment
   workload                    = var.workload
@@ -119,7 +119,7 @@ module "private_dns_resolver" {
 
 module "private_dns_resolver_dns_forwarding_ruleset" {
   source                                     = "../base_modules/private_dns_resolver_dns_forwarding_ruleset"
-  random_string                              = var.random_string
+  deployment_token                              = var.deployment_token
   location                                   = var.location
   environment                                = var.environment
   workload                                   = var.workload

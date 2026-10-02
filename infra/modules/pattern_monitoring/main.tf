@@ -49,7 +49,7 @@ module "locations" {
 
 module "resource_group" {
   source        = "../base_modules/resource_group"
-  random_string = var.random_string
+  deployment_token = var.deployment_token
   location      = var.location
   environment   = var.environment
   workload      = var.workload
@@ -59,7 +59,7 @@ module "resource_group" {
 
 module "virtual_network" {
   source              = "../base_modules/virtual_network"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -72,7 +72,7 @@ module "virtual_network" {
 
 module "subnet" {
   source               = "../base_modules/subnet"
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   location             = var.location
   environment          = var.environment
   workload             = var.workload
@@ -85,7 +85,7 @@ module "subnet" {
 module "routing" {
   source              = "../pattern_routing"
   count               = var.firewall_enabled ? 1 : 0
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -101,7 +101,7 @@ resource "azurecaf_name" "data_collection_rule" {
   name          = var.workload
   resource_type = "azurerm_monitor_data_collection_rule"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -162,7 +162,7 @@ resource "azurecaf_name" "data_collection_endpoint" {
   name          = var.workload
   resource_type = "azurerm_monitor_data_collection_endpoint"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -187,7 +187,7 @@ resource "azurecaf_name" "private_link_scope" {
   name          = var.workload
   resource_type = "azurerm_monitor_private_link_scope"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -214,7 +214,7 @@ resource "azurecaf_name" "pe" {
   name          = var.workload
   resource_type = "azurerm_private_endpoint"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -222,7 +222,7 @@ resource "azurecaf_name" "nic" {
   name          = var.workload
   resource_type = "azurerm_public_ip"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 

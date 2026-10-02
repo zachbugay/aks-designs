@@ -80,7 +80,7 @@ resource "azurecaf_name" "this" {
   name          = var.workload
   resource_type = "azurerm_kubernetes_cluster"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -88,7 +88,7 @@ resource "azurecaf_name" "aks_identity" {
   name          = "aks-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -96,7 +96,7 @@ resource "azurecaf_name" "aks_kubelet_identity" {
   name          = "kubelet-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 

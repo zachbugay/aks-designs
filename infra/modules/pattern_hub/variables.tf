@@ -31,19 +31,19 @@ variable "dns_servers" {
   default     = null
 }
 
-variable "gateway" {
+variable "virtual_network_gateway" {
   description = "(Optional) Include a VPN Gateway."
   type        = bool
   default     = false
 }
 
-variable "gateway_type" {
+variable "virtual_network_gateway_type" {
   description = "(Optional) The type of the VPN Gateway."
   type        = string
   default     = "Vpn"
 }
 
-variable "gateway_sku" {
+variable "virtual_network_gateway_sku" {
   description = "(Optional) The SKU of the VPN Gateway."
   type        = string
   default     = "VpnGw1AZ"
@@ -137,33 +137,8 @@ variable "tags" {
   default     = null
 }
 
-variable "application_gateway" {
-  description = "(Optional) Deploy an Application Gateway for inbound L7 traffic."
-  type        = bool
-  default     = false
-}
-
-variable "appgw_backend_ip_addresses" {
-  description = "(Optional) Backend IP addresses for the Application Gateway (e.g., Istio internal LB IP)."
-  type        = list(string)
-  default     = []
-}
-
-variable "appgw_waf_enabled" {
-  description = "(Optional) Enable WAF on the Application Gateway. Only supported on WAF_v2 SKU."
-  type        = bool
-  default     = true
-}
-
-variable "appgw_waf_mode" {
-  description = "(Optional) The WAF mode. Accepted values are Detection and Prevention."
-  type        = string
-  default     = "Prevention"
-}
-
-variable "random_string" {
+variable "deployment_token" {
   description = "(Optional) A random string suffix to ensure all resources in a deployment share the same identifier."
   type        = string
   default     = ""
 }
-

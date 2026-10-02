@@ -25,12 +25,10 @@
 | `AZURE_LOCATION`             | Yes      | Azure region (e.g., `westus3`)                                                                                                     |
 | `AZURE_SUBSCRIPTION_ID`      | Yes      | Azure subscription ID                                                                                                              |
 | `AZURE_TENANT_ID`            | Yes      | Azure tenant ID                                                                                                                    |
-| `AKS_NODE_POOL_VM_SIZE`      | Yes      | VM size for AKS node pool (e.g., `Standard_D4as_v7`)                                                                               |
 | `ADMIN_OBJECT_IDS`           | Yes      | Comma-separated Entra ID group object IDs for AKS admin access                                                                     |
 | `ALERT_EMAIL`                | Yes      | Email address for AKS alert notifications                                                                                          |
 | `AZURE_VPN_GATEWAY`          | Yes      | Whether to enable an Azure VPN Gateway or not.                                                                                     |
 | `AZURE_FIREWALL`             | Yes      | JSON enabling the Azure Firewall with a specific SKU.                                                                              |
-| `AGW_TRUSTED_ROOT_CA_BASE64` | No       | Base64 PEM of the demo CA. Empty on first `azd up`; see [Backend TLS trusted root bootstrap](#backend-tls-trusted-root-bootstrap). |
 
 ## Quick Start
 

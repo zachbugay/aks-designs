@@ -69,7 +69,7 @@ locals {
 
   agw_certificate_common_name = try(coalesce(var.application_gateway_certificate_common_name, local.agw_hostnames[0]), null)
 
-  agw_certificate_name = join("-", compact([var.workload, var.random_string, "agw-frontend-tls"]))
+  agw_certificate_name = join("-", compact([var.workload, var.deployment_token, "agw-frontend-tls"]))
 
   # The shared spoke rules deny inbound Internet traffic, which the Application Gateway subnet
   # cannot tolerate: it needs the control plane ports and the public frontend ports.
@@ -128,7 +128,7 @@ module "locations" {
 
 module "resource_group" {
   source        = "../base_modules/resource_group"
-  random_string = var.random_string
+  deployment_token = var.deployment_token
   location      = var.location
   environment   = var.environment
   workload      = var.workload
@@ -138,7 +138,7 @@ module "resource_group" {
 
 module "virtual_network" {
   source              = "../base_modules/virtual_network"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -158,7 +158,7 @@ module "subnets" {
   environment                          = var.environment
   instance                             = format("%03d", each.value.instance)
   location                             = var.location
-  random_string                        = var.random_string
+  deployment_token                        = var.deployment_token
   resource_group_name                  = module.resource_group.name
   service_endpoint                     = each.value.service_endpoint
   snet_default_outbound_access_enabled = false
@@ -186,7 +186,7 @@ module "routing" {
   location            = var.location
   next_hop            = var.subnets_next_hop
   next_hop_type       = "VirtualAppliance"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   resource_group_name = module.resource_group.name
   subnet_id           = module.subnets["aks-cluster"].id
   tags                = local.tags
@@ -199,7 +199,7 @@ module "network_security_group" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   resource_group_name = module.resource_group.name
   workload            = var.workload
 }
@@ -230,7 +230,7 @@ module "subnet_network_security_group_association" {
 # TODO: This should be in a shared RG, not the AKS RG. 
 module "acr" {
   source                     = "../base_modules/container_registry"
-  random_string              = var.random_string
+  deployment_token              = var.deployment_token
   environment                = var.environment
   instance                   = var.instance
   location                   = var.location
@@ -313,7 +313,7 @@ module "aks" {
   private_api_server           = var.enable_private_api_server
   private_api_server_subnet_id = module.subnets["aks-api-server"].id
   private_dns_zone_id          = var.private_dns_zone_id
-  random_string                = var.random_string
+  deployment_token                = var.deployment_token
   resource_group_name          = module.resource_group.name
   tenant_id                    = var.tenant_id
   workload                     = var.workload
@@ -339,7 +339,7 @@ module "private_key_vault" {
   key_vault_private_dns_zone_resource_id = var.key_vault_private_dns_zone_resource_id
   location                               = var.location
   private_endpoint_subnet_resource_id    = var.private_endpoint_subnet_resource_id
-  random_string                          = var.random_string
+  deployment_token                          = var.deployment_token
   resource_group_name                    = module.resource_group.name
   tags                                   = local.tags
   tenant_id                              = var.tenant_id
@@ -375,7 +375,7 @@ module "public_ip_agw" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   resource_group_name = module.resource_group.name
   tags                = local.tags
   workload            = "agw"
@@ -386,7 +386,7 @@ resource "azurecaf_name" "agw_identity" {
   name          = "agw-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, var.instance] : [var.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, var.instance] : [var.instance]
   clean_input   = true
 }
 
@@ -457,7 +457,7 @@ module "network_security_group_agw" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   resource_group_name = module.resource_group.name
   tags                = local.tags
   workload            = "agw"
@@ -500,7 +500,7 @@ module "application_gateway" {
   instance                            = var.instance
   location                            = var.location
   public_ip_address_id                = module.public_ip_agw[0].id
-  random_string                       = var.random_string
+  deployment_token                       = var.deployment_token
   resource_group_name                 = module.resource_group.name
   ssl_certificate_key_vault_secret_id = azurerm_key_vault_certificate.agw_frontend_cert[0].versionless_secret_id
   subnet_id                           = module.subnets["agw-subnet"].id
