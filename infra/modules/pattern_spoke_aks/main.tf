@@ -67,7 +67,7 @@ locals {
     for key in sort(keys(var.application_gateway_applications)) : var.application_gateway_applications[key].hostname
   ])
 
-  agw_certificate_common_name = try(coalesce(var.application_gateway_certificate_common_name, local.agw_hostnames[0]), null)
+  agw_certificate_common_name = try(coalesce(var.application_gateway.certificate_common_name, local.agw_hostnames[0]), null)
 
   agw_certificate_name = join("-", compact([var.workload, var.deployment_token, "agw-frontend-tls"]))
 
@@ -144,7 +144,7 @@ module "virtual_network" {
   workload            = var.workload
   instance            = var.instance
   resource_group_name = module.resource_group.name
-  address_space       = var.address_space
+  address_space       = var.vnet_address_space
   dns_servers         = var.dns_servers
   tags                = local.tags
 }
@@ -173,7 +173,7 @@ module "virtual_network_peerings" {
   virtual_network_1_hub                 = true
   virtual_network_2_resource_group_name = module.resource_group.name
   virtual_network_2_id                  = module.virtual_network.id
-  gateway_exists                        = var.gateway_exists
+  virtual_network_gateway_exists        = var.virtual_network_gateway_exists
 }
 
 module "routing" {
@@ -186,7 +186,7 @@ module "routing" {
   location            = var.location
   next_hop            = var.subnets_next_hop
   next_hop_type       = "VirtualAppliance"
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   resource_group_name = module.resource_group.name
   subnet_id           = module.subnets["aks-cluster"].id
   tags                = local.tags
@@ -222,7 +222,7 @@ module "network_security_rules" {
 
 module "subnet_network_security_group_association" {
   source                    = "../base_modules/subnet_network_security_group_association"
-  for_each                  = var.network_security_group ? { for name, subnet in module.subnets : name => subnet if !(var.application_gateway && name == "agw-subnet") } : {}
+  for_each                  = var.network_security_group ? { for name, subnet in module.subnets : name => subnet if !(var.application_gateway.enabled && name == "agw-subnet") } : {}
   network_security_group_id = module.network_security_group[0].id
   subnet_id                 = each.value.id
 }
@@ -260,7 +260,7 @@ module "aks" {
       }
     }
     application_gateway_for_containers = {
-      enabled = false
+      enabled = var.application_gateway_for_containers
     }
     application_routing_gateway_api = {
       enabled = true
@@ -275,7 +275,7 @@ module "aks" {
       name           = "d4adsv7zone1"
       node_count     = 1
       os             = "AzureLinux"
-      vm_size        = "Standard_D4ads_v7"
+      vm_size        = var.vm_size
       vnet_subnet_id = module.subnets["aks-cluster"].id
       upgrade_settings = {
         drain_timeout_in_minutes      = 0
@@ -313,7 +313,7 @@ module "aks" {
   private_api_server           = var.enable_private_api_server
   private_api_server_subnet_id = module.subnets["aks-api-server"].id
   private_dns_zone_id          = var.private_dns_zone_id
-  deployment_token                = var.deployment_token
+  deployment_token             = var.deployment_token
   resource_group_name          = module.resource_group.name
   tenant_id                    = var.tenant_id
   workload                     = var.workload
@@ -339,7 +339,7 @@ module "private_key_vault" {
   key_vault_private_dns_zone_resource_id = var.key_vault_private_dns_zone_resource_id
   location                               = var.location
   private_endpoint_subnet_resource_id    = var.private_endpoint_subnet_resource_id
-  deployment_token                          = var.deployment_token
+  deployment_token                       = var.deployment_token
   resource_group_name                    = module.resource_group.name
   tags                                   = local.tags
   tenant_id                              = var.tenant_id
@@ -371,7 +371,7 @@ resource "azurerm_role_assignment" "kubelet_keyvault_secrets_user" {
 
 module "public_ip_agw" {
   source              = "../base_modules/public_ip"
-  count               = var.application_gateway ? 1 : 0
+  count               = var.application_gateway.enabled ? 1 : 0
   environment         = var.environment
   instance            = var.instance
   location            = var.location
@@ -382,7 +382,7 @@ module "public_ip_agw" {
 }
 
 resource "azurecaf_name" "agw_identity" {
-  count         = var.application_gateway ? 1 : 0
+  count         = var.application_gateway.enabled ? 1 : 0
   name          = "agw-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
@@ -391,7 +391,7 @@ resource "azurecaf_name" "agw_identity" {
 }
 
 resource "azurerm_user_assigned_identity" "agw" {
-  count               = var.application_gateway ? 1 : 0
+  count               = var.application_gateway.enabled ? 1 : 0
   name                = azurecaf_name.agw_identity[0].result
   location            = module.locations.name
   resource_group_name = module.resource_group.name
@@ -399,14 +399,14 @@ resource "azurerm_user_assigned_identity" "agw" {
 }
 
 resource "azurerm_role_assignment" "agw_keyvault_secrets_user" {
-  count                = var.application_gateway ? 1 : 0
+  count                = var.application_gateway.enabled ? 1 : 0
   principal_id         = azurerm_user_assigned_identity.agw[0].principal_id
   role_definition_name = "Key Vault Secrets User"
   scope                = module.private_key_vault.id
 }
 
 resource "azurerm_key_vault_certificate" "agw_frontend_cert" {
-  count        = var.application_gateway ? 1 : 0
+  count        = var.application_gateway.enabled ? 1 : 0
   name         = local.agw_certificate_name
   key_vault_id = module.private_key_vault.id
   tags         = local.tags
@@ -446,14 +446,14 @@ resource "azurerm_key_vault_certificate" "agw_frontend_cert" {
   lifecycle {
     precondition {
       condition     = local.agw_certificate_common_name != null
-      error_message = "Set application_gateway_certificate_common_name, or provide at least one application in application_gateway_applications."
+      error_message = "Set application_gateway.certificate_common_name, or provide at least one application in application_gateway_applications."
     }
   }
 }
 
 module "network_security_group_agw" {
   source              = "../base_modules/network_security_group"
-  count               = var.application_gateway ? 1 : 0
+  count               = var.application_gateway.enabled ? 1 : 0
   environment         = var.environment
   instance            = var.instance
   location            = var.location
@@ -465,7 +465,7 @@ module "network_security_group_agw" {
 
 module "network_security_rules_agw" {
   source                      = "../base_modules/network_security_rule"
-  for_each                    = var.application_gateway ? { for rule in local.agw_network_security_rules : rule.name => rule } : {}
+  for_each                    = var.application_gateway.enabled ? { for rule in local.agw_network_security_rules : rule.name => rule } : {}
   access                      = each.value.access
   destination_address_prefix  = each.value.destination_address_prefix
   destination_port_range      = each.value.destination_port_range
@@ -481,19 +481,19 @@ module "network_security_rules_agw" {
 
 module "subnet_network_security_group_association_agw" {
   source                    = "../base_modules/subnet_network_security_group_association"
-  count                     = var.application_gateway ? 1 : 0
+  count                     = var.application_gateway.enabled ? 1 : 0
   network_security_group_id = module.network_security_group_agw[0].id
   subnet_id                 = module.subnets["agw-subnet"].id
 }
 
 module "application_gateway" {
   source = "../base_modules/application_gateway"
-  count  = var.application_gateway ? 1 : 0
+  count  = var.application_gateway.enabled ? 1 : 0
 
   appgw_applications = var.application_gateway_applications
   # Static internal load balancer IP of the in-cluster Gateway API gateway.
   # See k8s/infrastructure/configs/gateway/gateway.yaml.
-  backend_ip_addresses                = var.application_gateway_backend_ip_addresses
+  backend_ip_addresses                = var.application_gateway.backend_ip_addresses
   environment                         = var.environment
   frontend_ip_name                    = "agw"
   identity_id                         = azurerm_user_assigned_identity.agw[0].id
@@ -505,7 +505,7 @@ module "application_gateway" {
   ssl_certificate_key_vault_secret_id = azurerm_key_vault_certificate.agw_frontend_cert[0].versionless_secret_id
   subnet_id                           = module.subnets["agw-subnet"].id
   tags                                = local.tags
-  trusted_root_certificate_pem        = var.application_gateway_trusted_root_certificate_pem
+  trusted_root_certificate_pem        = var.application_gateway.trusted_root_certificate_pem
   workload                            = var.workload
 
   depends_on = [azurerm_role_assignment.agw_keyvault_secrets_user]

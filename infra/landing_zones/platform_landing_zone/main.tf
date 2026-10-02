@@ -33,7 +33,6 @@ locals {
   admin_object_ids  = var.admin_object_ids != "" ? split(",", var.admin_object_ids) : null
   p2s_vpn_enabled   = (var.virtual_network_gateway && var.point_to_site_vpn)
   vpn_auth_types    = (var.virtual_network_gateway && var.point_to_site_vpn) ? ["AAD"] : null
-  agw_root_cert_pem = var.application_gateway_trusted_root_certificate_base64 != "" ? base64decode(var.application_gateway_trusted_root_certificate_base64) : null
 }
 
 module "pattern_hub_and_spoke" {
@@ -61,7 +60,6 @@ module "pattern_hub_and_spoke" {
   update_management                                = true
   workload                                         = "shared-hub"
   workload_environment                             = var.workload_environment
-
-  tags = var.common_tags
+  tags                                             = var.common_tags
 }
 

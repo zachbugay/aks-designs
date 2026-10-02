@@ -29,6 +29,7 @@
 | `ALERT_EMAIL`                | Yes      | Email address for AKS alert notifications                                                                                          |
 | `AZURE_VPN_GATEWAY`          | Yes      | Whether to enable an Azure VPN Gateway or not.                                                                                     |
 | `AZURE_FIREWALL`             | Yes      | JSON enabling the Azure Firewall with a specific SKU.                                                                              |
+| `AKS_ENVIRONMENT`            | Yes      | AKS Environment (e.g., `dev`)                                                                                                      |
 
 ## Quick Start
 
@@ -39,6 +40,8 @@ azd env new nonprod
 # --- Infrastructure settings ---
 azd env set ADMIN_OBJECT_IDS "<comma-separated group object IDs>"
 azd env set AKS_NODE_POOL_VM_SIZE "Standard_D4as_v7"
+azd env set AKS_ENVIRONMENT "dev"
+
 azd env set ALERT_EMAIL "<your email>"
 
 azd env set AZURE_ENV_NAME "nonprod"
@@ -54,6 +57,8 @@ azd env set AZURE_FIREWALL="{\"enabled\":true,\"sku_tier\":\"Standard\",\"sku_na
 azd env set GITHUB_REPO_NAME "<your-repo>"
 azd env set GITHUB_TOKEN "<your-token>"
 azd env set GITHUB_USERNAME "<your-username>"
+
+
 ```
 
 ## Install Azure CLI Extensions

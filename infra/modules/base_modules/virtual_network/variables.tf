@@ -31,6 +31,7 @@ variable "resource_group_name" {
   type        = string
 }
 
+// TODO: Add Network Manager IPAM Pool 
 variable "address_space" {
   description = "(Required) The address space that is used the Virtual Network."
   type        = list(string)

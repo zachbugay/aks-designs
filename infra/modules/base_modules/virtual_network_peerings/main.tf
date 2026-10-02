@@ -1,7 +1,7 @@
 locals {
   virtual_network_1_name        = split("/", var.virtual_network_1_id)[8]
   virtual_network_2_name        = split("/", var.virtual_network_2_id)[8]
-  enable_gateway_transit_1_to_2 = (var.virtual_network_1_hub && var.gateway_exists)
+  enable_gateway_transit_1_to_2 = (var.virtual_network_1_hub && var.virtual_network_gateway_exists)
 }
 
 module "peering_1_to_2" {

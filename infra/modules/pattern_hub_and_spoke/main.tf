@@ -92,7 +92,7 @@ module "virtual_network_peerings" {
   virtual_network_1_hub                 = true
   virtual_network_2_resource_group_name = each.value.resource_group_name
   virtual_network_2_id                  = each.value.virtual_network_id
-  gateway_exists                        = var.virtual_network_gateway
+  virtual_network_gateway_exists                        = var.virtual_network_gateway
 
   depends_on = [
     module.hub,
@@ -120,7 +120,7 @@ module "virtual_network_peerings_dns" {
   virtual_network_1_hub                 = true
   virtual_network_2_resource_group_name = module.spoke_dns[0].resource_group_name
   virtual_network_2_id                  = module.spoke_dns[0].virtual_network_id
-  gateway_exists                        = var.virtual_network_gateway
+  virtual_network_gateway_exists                        = var.virtual_network_gateway
 
   depends_on = [
     module.hub,
@@ -176,7 +176,7 @@ module "virtual_network_peerings_monitoring" {
   virtual_network_1_hub                 = true
   virtual_network_2_resource_group_name = module.pattern_monitoring[0].resource_group_name
   virtual_network_2_id                  = module.pattern_monitoring[0].virtual_network_id
-  gateway_exists                        = var.virtual_network_gateway
+  virtual_network_gateway_exists                        = var.virtual_network_gateway
 
   depends_on = [
     module.hub,
@@ -371,14 +371,3 @@ module "private_key_vault" {
   tenant_id                              = var.tenant_id
   workload                               = var.workload
 }
-
-# module "p2s_root_certificate" {
-#   source = "../composite_modules/p2s_root_certificate"
-#   count  = local.p2s_certificate_enabled ? 1 : 0
-#
-#   environment  = var.environment
-#   instance     = var.instance
-#   key_vault_id = module.private_key_vault[0].id
-#   tags         = local.tags
-#   workload     = var.workload
-# }
