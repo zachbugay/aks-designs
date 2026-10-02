@@ -132,9 +132,13 @@ variable "ssl_certificate_key_vault_secret_id" {
 }
 
 variable "trusted_root_certificate_pem" {
-  description = "(Optional) PEM encoded root certificate that signs the backend TLS certificates. When null, the backend HTTP settings rely on the default trusted certificate authorities."
-  type        = string
-  default     = null
+  description = <<-EOT
+    (Optional) PEM encoded root certificate that signs the backend TLS certificates. 
+    When null, the backend HTTP settings rely on the default trusted certificate authorities.
+  EOT
+
+  type    = string
+  default = null
 }
 
 variable "appgw_applications" {
