@@ -135,7 +135,7 @@ module "route_to_spoke_dns" {
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
   resource_group_name    = module.hub.resource_group_name
-  route_table_name       = module.hub.gateway_route_table_name
+  route_table_name       = module.hub.virtual_network_gateway_route_table_name
 }
 
 module "route_to_spokes" {
@@ -145,7 +145,7 @@ module "route_to_spokes" {
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
   resource_group_name    = module.hub.resource_group_name
-  route_table_name       = module.hub.gateway_route_table_name
+  route_table_name       = module.hub.virtual_network_gateway_route_table_name
 }
 
 module "pattern_monitoring" {
@@ -191,7 +191,7 @@ module "route_to_spoke_monitoring" {
   next_hop_in_ip_address = module.hub.firewall_private_ip
   next_hop_type          = "VirtualAppliance"
   resource_group_name    = module.hub.resource_group_name
-  route_table_name       = module.hub.gateway_route_table_name
+  route_table_name       = module.hub.virtual_network_gateway_route_table_name
 }
 
 module "data_collection_rule_association" {

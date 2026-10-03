@@ -160,12 +160,6 @@ variable "authorized_ip_ranges" {
   default     = null
 }
 
-variable "vm_size" {
-  description = "(Optional) Default node pool VM size. Default Standard_D4as_v7"
-  type        = string
-  default     = "Standard_D4as_v7"
-}
-
 variable "aks_vnet_id" {
   description = "(Required) Virtual Network ID"
   type        = string

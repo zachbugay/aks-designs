@@ -1,5 +1,5 @@
 variable "aks_node_pool_vm_size" {
-  description = "value of azure kubernetes node pool vm size"
+  description = "(Optional) VM Size for all node pools. Defaults to Standard_D4as_v7."
   type        = string
   default     = "Standard_D4as_v7"
 }
@@ -13,7 +13,7 @@ variable "aks_version" {
 variable "aks_spoke_vnet_address_space" {
   description = "(Required) AKS Spoke VNet address space."
   type        = string
-  default     = ""
+  default     = "10.100.12.0/22"
 }
 
 variable "aks_environment" {
@@ -35,7 +35,7 @@ variable "firewall_enabled" {
 
 variable "firewall_private_ip" {
   description = "(Required) Private IP address to the Azure Firewall."
-  type = string
+  type        = string
 }
 
 variable "workload_environment" {
@@ -84,34 +84,39 @@ variable "virtual_network_gateway_exists" {
 
 variable "hub_resource_group_name" {
   description = "(Required) Resource group name of the hub."
-  type = string  
+  type        = string
 }
 
 variable "hub_virtual_network_id" {
   description = "(Required) Resource ID for the hub virtual network."
-  type = string  
+  type        = string
 }
 
 variable "hub_log_analytics_workspace_id" {
   description = "(Required) Resource ID for the hub log analytics workspace."
-  type = string
+  type        = string
 }
 
 variable "hub_azure_monitor_workspace_id" {
   description = "(Required) Resource ID for the hub azure montior workspace."
-  type = string
+  type        = string
 }
 
-variable "private_endpoint_subnet_id" {
+variable "hub_private_endpoint_subnet_id" {
   description = "(Required) Resource ID for subnet in which to add private endpoints."
-  type = string
+  type        = string
+}
+
+variable "hub_key_vault_name" {
+  description = "(Required) Name of the key vault located in the hub for managing shared secrets."
+  type        = string
 }
 
 variable "private_dns_zones" {
   description = "(Required) Map of private DNS zones."
   type = map(object({
     name = string
-    id = string
+    id   = string
   }))
 }
 
@@ -135,16 +140,16 @@ variable "enable_private_api_server" {
 
 variable "application_gateway" {
   description = "(Optional) Deploy an Application Gateway in front of the cluster's in-cluster gateway."
-  type        = map({
-    enabled = bool
-    backend_ip_addresses = list(string)
-    certificate_common_name = optional(string)
+  type = object({
+    enabled                      = bool
+    backend_ip_addresses         = list(string)
+    certificate_common_name      = optional(string)
     trusted_root_certificate_pem = optional(string)
   })
-  default     = {
-    enabled = false
-    backend_ip_addresses = [] # ["10.100.12.8"]
-    certificate_common_name = null
+  default = {
+    enabled                      = false
+    backend_ip_addresses         = []
+    certificate_common_name      = null
     trusted_root_certificate_pem = null
   }
 }
@@ -198,4 +203,8 @@ variable "application_gateway_backend_ip_addresses" {
   description = "(Optional) The backend IP addresses of the Application Gateway, typically the internal load balancer IP of the gateway in the AKS cluster."
   type        = list(string)
   default     = []
+}
+
+variable "virtual_network_gateway_route_table_name" {
+  type = string
 }

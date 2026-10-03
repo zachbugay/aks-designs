@@ -161,12 +161,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     user_assigned_identity_id = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
+  # Node auto-provisioning requires enableAutoScaling = false on every agent pool.
+  # AKS scales the system pool itself when NAP is enabled.
   default_node_pool {
-    name    = var.system_node_pool.name
-    vm_size = var.system_node_pool.vm_size
-    zones   = var.system_node_pool.zones
-    # Node auto-provisioning requires enableAutoScaling = false on every agent pool.
-    # AKS scales the system pool itself when NAP is enabled.
+    name                         = var.system_node_pool.name
+    vm_size                      = var.system_node_pool.vm_size
+    zones                        = var.system_node_pool.zones
     auto_scaling_enabled         = !local.nap_enabled
     min_count                    = local.nap_enabled ? null : var.system_node_pool.min_count
     max_count                    = local.nap_enabled ? null : var.system_node_pool.max_count
@@ -304,9 +304,8 @@ resource "random_string" "node_pool_rotation" {
 resource "azurerm_kubernetes_cluster_node_pool" "this" {
   for_each = var.user_node_pools
 
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
-  name                  = each.value.name
-
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.this.id
+  name                        = each.value.name
   auto_scaling_enabled        = !local.nap_enabled
   node_count                  = each.value.node_count
   os_sku                      = each.value.os
@@ -396,6 +395,10 @@ resource "azapi_update_resource" "addons_profile" {
   }
 
   ignore_missing_property = true
+
+  depends_on = [
+    azurerm_kubernetes_cluster_node_pool.this
+  ]
 }
 
 # Identity for the Application Load Balancer for the Application Gateway for Containers Addon.

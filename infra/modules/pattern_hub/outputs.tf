@@ -38,7 +38,7 @@ output "virtual_network_gateway_id" {
   value       = var.virtual_network_gateway ? module.virtual_network_gateway[0].id : null
 }
 
-output "gateway_route_table_name" {
+output "virtual_network_gateway_route_table_name" {
   description = "The name of the Route Table for the Virtual Network Gateway."
   value       = module.route_table_gateway.name
 }

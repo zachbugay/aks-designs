@@ -73,10 +73,14 @@ variable "shared_access_key_enabled" {
   default     = false
 }
 
-variable "public_network_access_enabled" {
+variable "public_network_access" {
   description = "(Optional) Allow or disallow public access to the storage account."
-  type        = bool
-  default     = false
+  type        = string
+  default     = "Disabled"
+  validation {
+    condition     = contains(toset(["Disabled", "Enabled", "SecuredByPerimiter"]), var.public_network_access)
+    error_message = "public_network_access must be one of: 'Disabled', 'Enabled', 'SecuredByPerimeter'."
+  }
 }
 
 variable "default_to_oauth_authentication" {

@@ -50,3 +50,7 @@ output "dns_servers" {
   value = local.dns_servers
 }
 
+output "virtual_network_gateway_route_table_name" {
+  value = module.hub.virtual_network_gateway_route_table_name
+}
+

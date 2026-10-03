@@ -97,11 +97,9 @@ output "oidc_issuer_url" {
 }
 
 output "application_gateway_id" {
-  description = "The ID of the Application Gateway."
-  value       = var.application_gateway ? module.application_gateway[0].id : null
+  value = var.application_gateway.enabled ? module.application_gateway[0].id : null
 }
 
 output "application_gateway_public_ip_address" {
-  description = "The public IP address of the Application Gateway."
-  value       = var.application_gateway ? module.public_ip_agw[0].ip_address : null
+  value = var.application_gateway.enabled ? module.public_ip_agw[0].ip_address : null
 }

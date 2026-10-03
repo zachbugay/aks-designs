@@ -38,3 +38,7 @@ output "PRIVATE_DNS_ZONES" {
 output "DNS_SERVERS" {
   value = module.pattern_hub_and_spoke.dns_servers
 }
+
+output "VIRTUAL_NETWORK_GATEWAY_ROUTE_TABLE_NAME" {
+  value = module.pattern_hub_and_spoke.virtual_network_gateway_route_table_name
+}

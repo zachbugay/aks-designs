@@ -17,7 +17,7 @@ locals {
   #   [2] agw-24 /24                10.100.14.0/24
   #   [3] aks-api-server /28        10.100.15.0/28
 
-  aks_subnets = cidrsubnets(var.address_space[0], 2, 2, 2, 6)
+  aks_subnets = cidrsubnets(var.vnet_address_space[0], 2, 2, 2, 6)
 
   subnets = [
     {
@@ -28,7 +28,6 @@ locals {
       service_endpoint = []
     },
     {
-
       # Application Gateway for Containers Subnet
       workload = "aks-alb", // Needs to be a size /24
       instance = "001"
@@ -127,18 +126,18 @@ module "locations" {
 }
 
 module "resource_group" {
-  source        = "../base_modules/resource_group"
+  source           = "../base_modules/resource_group"
   deployment_token = var.deployment_token
-  location      = var.location
-  environment   = var.environment
-  workload      = var.workload
-  instance      = var.instance
-  tags          = local.tags
+  location         = var.location
+  environment      = var.environment
+  workload         = var.workload
+  instance         = var.instance
+  tags             = local.tags
 }
 
 module "virtual_network" {
   source              = "../base_modules/virtual_network"
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -158,7 +157,7 @@ module "subnets" {
   environment                          = var.environment
   instance                             = format("%03d", each.value.instance)
   location                             = var.location
-  deployment_token                        = var.deployment_token
+  deployment_token                     = var.deployment_token
   resource_group_name                  = module.resource_group.name
   service_endpoint                     = each.value.service_endpoint
   snet_default_outbound_access_enabled = false
@@ -199,7 +198,7 @@ module "network_security_group" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   resource_group_name = module.resource_group.name
   workload            = var.workload
 }
@@ -230,7 +229,7 @@ module "subnet_network_security_group_association" {
 # TODO: This should be in a shared RG, not the AKS RG. 
 module "acr" {
   source                     = "../base_modules/container_registry"
-  deployment_token              = var.deployment_token
+  deployment_token           = var.deployment_token
   environment                = var.environment
   instance                   = var.instance
   location                   = var.location
@@ -270,32 +269,17 @@ module "aks" {
     }
   }
 
+  # Add the specific subnet
   user_node_pools = {
-    "user_node_pool_1" = {
-      name           = "d4adsv7zone1"
-      node_count     = 1
-      os             = "AzureLinux"
-      vm_size        = var.vm_size
+    for key, pool in var.user_node_pools : key => merge(pool, {
       vnet_subnet_id = module.subnets["aks-cluster"].id
-      upgrade_settings = {
-        drain_timeout_in_minutes      = 0
-        max_surge                     = "10%"
-        node_soak_duration_in_minutes = 0
-      }
-    }
+    })
   }
 
-  system_node_pool = {
-    name                         = "systempool"
-    vm_size                      = var.vm_size
-    zones                        = ["1", "2", "3"]
-    os                           = "AzureLinux"
-    min_count                    = 1
-    max_count                    = 8
-    max_pods                     = 110
-    vnet_subnet_id               = module.subnets["aks-cluster"].id
-    only_critical_addons_enabled = true
-  }
+  # Add the specific subnet
+  system_node_pool = merge(var.system_node_pool, {
+    vnet_subnet_id = module.subnets["aks-cluster"].id
+  })
 
   admin_object_ids             = var.admin_object_ids
   aks_alb_snet                 = module.subnets["aks-alb"].id
@@ -375,7 +359,7 @@ module "public_ip_agw" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   resource_group_name = module.resource_group.name
   tags                = local.tags
   workload            = "agw"
@@ -457,7 +441,7 @@ module "network_security_group_agw" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   resource_group_name = module.resource_group.name
   tags                = local.tags
   workload            = "agw"
@@ -500,7 +484,7 @@ module "application_gateway" {
   instance                            = var.instance
   location                            = var.location
   public_ip_address_id                = module.public_ip_agw[0].id
-  deployment_token                       = var.deployment_token
+  deployment_token                    = var.deployment_token
   resource_group_name                 = module.resource_group.name
   ssl_certificate_key_vault_secret_id = azurerm_key_vault_certificate.agw_frontend_cert[0].versionless_secret_id
   subnet_id                           = module.subnets["agw-subnet"].id

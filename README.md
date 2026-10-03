@@ -72,3 +72,16 @@ az extension add --name monitor-control-service --yes
 - The k8s/infrastructure/configs/gateway/gateway.yaml annotations need updated with the correct subnet, dynamically.
 - The agw needs to have its backend pool IP updated to the internal load balancer created.
 - Spoke AKS should create the AKS cluster, and that's it. My Application Landing Zone should create and configure my AGW. 
+
+```PowerShell
+
+# Azure DevOps Resource ID
+$adoResourceId="499b84ac-1321-427f-aa17-267ca6975798"
+
+# Login as the UAMI.
+az login --identity --allow-no-subscriptions 
+
+# Get the token.
+token=$(az account get-access-token --resource $adoResourceId --query "accessToken" -o tsv)
+
+```

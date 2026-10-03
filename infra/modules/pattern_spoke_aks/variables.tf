@@ -40,10 +40,65 @@ variable "admin_object_ids" {
   type        = list(string)
 }
 
-variable "vm_size" {
-  description = "VM Size of all node pools."
-  type        = string
-  default     = "Standard_D4ads_v7"
+variable "system_node_pool" {
+  description = "(Optional) User node pools that should also be created."
+  type = object({
+    name                         = string
+    vm_size                      = string
+    zones                        = set(string)
+    os                           = string
+    min_count                    = number
+    max_count                    = number
+    max_pods                     = number
+    vnet_subnet_id               = optional(string, "")
+    only_critical_addons_enabled = bool
+  })
+
+  validation {
+    condition     = contains(toset(["AzureLinux", "Ubuntu"]), var.system_node_pool.os)
+    error_message = "os must be one of: 'AzureLinux', 'Ubuntu'"
+  }
+
+  # validation {
+  #   condition     = alltrue([for pool in var.system_node_pool : length(pool.name) >= 1 && length(pool.name) <= 12])
+  #   error_message = "Each user node pool 'name' must be between 1 and 12 characters long."
+  # }
+  #
+  # validation {
+  #   condition     = alltrue([for pool in var.system_node_pool : can(regex("^[a-z][a-z0-9]*$", pool.name))])
+  #   error_message = "Each user node pool 'name' must begin with a lowercase letter and contain only lowercase alphanumeric characters."
+  # }
+}
+
+variable "user_node_pools" {
+  description = "(Optional) User node pools that should also be created."
+  type = map(object({
+    name           = string
+    node_count     = number
+    vm_size        = string
+    os             = string
+    vnet_subnet_id = optional(string, "")
+    upgrade_settings = optional(object({
+      drain_timeout_in_minutes      = number
+      max_surge                     = string
+      node_soak_duration_in_minutes = number
+      }),
+      {
+        drain_timeout_in_minutes      = 0
+        max_surge                     = "10%"
+        node_soak_duration_in_minutes = 0
+    })
+  }))
+
+  validation {
+    condition     = alltrue([for pool in var.user_node_pools : length(pool.name) >= 1 && length(pool.name) <= 12])
+    error_message = "Each user node pool 'name' must be between 1 and 12 characters long."
+  }
+
+  validation {
+    condition     = alltrue([for pool in var.user_node_pools : can(regex("^[a-z][a-z0-9]*$", pool.name))])
+    error_message = "Each user node pool 'name' must begin with a lowercase letter and contain only lowercase alphanumeric characters."
+  }
 }
 
 variable "kubernetes_version" {
@@ -283,16 +338,16 @@ variable "private_endpoint_subnet_resource_id" {
 
 variable "application_gateway" {
   description = "(Optional) Deploy an Application Gateway in front of the cluster's in-cluster gateway."
-  type        = map({
-    enabled = bool
-    backend_ip_addresses = list(string)
-    certificate_common_name = optional(string)
+  type = object({
+    enabled                      = bool
+    backend_ip_addresses         = list(string)
+    certificate_common_name      = optional(string)
     trusted_root_certificate_pem = optional(string)
   })
-  default     = {
-    enabled = false
-    backend_ip_addresses = []
-    certificate_common_name = null
+  default = {
+    enabled                      = false
+    backend_ip_addresses         = []
+    certificate_common_name      = null
     trusted_root_certificate_pem = null
   }
 }
