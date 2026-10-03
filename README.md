@@ -57,8 +57,6 @@ azd env set AZURE_FIREWALL="{\"enabled\":true,\"sku_tier\":\"Standard\",\"sku_na
 azd env set GITHUB_REPO_NAME "<your-repo>"
 azd env set GITHUB_TOKEN "<your-token>"
 azd env set GITHUB_USERNAME "<your-username>"
-
-
 ```
 
 ## Install Azure CLI Extensions
