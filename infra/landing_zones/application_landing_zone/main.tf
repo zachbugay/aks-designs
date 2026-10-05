@@ -38,12 +38,13 @@ module "spoke_aks" {
   source                                 = "../../modules/pattern_spoke_aks"
   admin_object_ids                       = local.admin_object_ids
   alert_email                            = var.alert_email
-  application_gateway                    = var.application_gateway
-  application_gateway_for_containers     = var.application_gateway_for_containers
+  application_gateway                    = var.application_gateway                   # Manual setup
+  application_gateway_for_containers     = var.application_gateway_for_containers    # AGC Setup
+  application_routing_addon_gateway_api  = var.application_routing_addon_gateway_api # App routing-addon setup.
   authorized_ip_ranges                   = var.authorized_ip_ranges
   deployment_token                       = random_string.deployment_token.result
   dns_servers                            = var.dns_servers
-  enable_private_api_server              = var.enable_private_api_server
+  enable_private_api_server              = var.enable_private_api_server # Default is 'true'
   environment                            = var.aks_environment
   hub_resource_group_name                = var.hub_resource_group_name
   hub_virtual_network_id                 = var.hub_virtual_network_id
@@ -88,48 +89,48 @@ module "spoke_aks" {
   vnet_address_space = [var.aks_spoke_vnet_address_space]
   workload           = "apps"
 
-  application_gateway_applications = {
-    httpbin = {
-      hostname                    = "zachb-httpbin.duckdns.org"
-      https_port                  = 443
-      http_port                   = 80
-      probe_path                  = "/get"
-      probe_protocol              = "Https"
-      probe_interval              = 30
-      probe_timeout               = 30
-      probe_unhealthy_threshold   = 3
-      probe_status_codes          = ["200-399"]
-      backend_port                = 443
-      backend_protocol            = "Https"
-      backend_request_timeout     = 30
-      cookie_based_affinity       = "Disabled"
-      rule_type                   = "Basic"
-      redirect_type               = "Permanent"
-      path_rules                  = []
-      https_rule_priority         = 100
-      http_redirect_rule_priority = 90
-    }
-    podinfo = {
-      hostname                    = "zachb-podinfo.duckdns.org"
-      https_port                  = 443
-      http_port                   = 80
-      probe_path                  = "/healthz"
-      probe_protocol              = "Https"
-      probe_interval              = 30
-      probe_timeout               = 30
-      probe_unhealthy_threshold   = 3
-      probe_status_codes          = ["200-399"]
-      backend_port                = 443
-      backend_protocol            = "Https"
-      backend_request_timeout     = 30
-      cookie_based_affinity       = "Disabled"
-      rule_type                   = "Basic"
-      redirect_type               = "Permanent"
-      path_rules                  = []
-      https_rule_priority         = 110
-      http_redirect_rule_priority = 80
-    }
-  }
+  # application_gateway_applications = {
+  #   httpbin = {
+  #     hostname                    = "zachb-httpbin.duckdns.org"
+  #     https_port                  = 443
+  #     http_port                   = 80
+  #     probe_path                  = "/get"
+  #     probe_protocol              = "Https"
+  #     probe_interval              = 30
+  #     probe_timeout               = 30
+  #     probe_unhealthy_threshold   = 3
+  #     probe_status_codes          = ["200-399"]
+  #     backend_port                = 443
+  #     backend_protocol            = "Https"
+  #     backend_request_timeout     = 30
+  #     cookie_based_affinity       = "Disabled"
+  #     rule_type                   = "Basic"
+  #     redirect_type               = "Permanent"
+  #     path_rules                  = []
+  #     https_rule_priority         = 100
+  #     http_redirect_rule_priority = 90
+  #   }
+  #   podinfo = {
+  #     hostname                    = "zachb-podinfo.duckdns.org"
+  #     https_port                  = 443
+  #     http_port                   = 80
+  #     probe_path                  = "/healthz"
+  #     probe_protocol              = "Https"
+  #     probe_interval              = 30
+  #     probe_timeout               = 30
+  #     probe_unhealthy_threshold   = 3
+  #     probe_status_codes          = ["200-399"]
+  #     backend_port                = 443
+  #     backend_protocol            = "Https"
+  #     backend_request_timeout     = 30
+  #     cookie_based_affinity       = "Disabled"
+  #     rule_type                   = "Basic"
+  #     redirect_type               = "Permanent"
+  #     path_rules                  = []
+  #     https_rule_priority         = 110
+  #     http_redirect_rule_priority = 80
+  #   }
+  # }
 }
 
 module "route_to_spoke_aks" {

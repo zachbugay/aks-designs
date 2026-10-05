@@ -402,16 +402,16 @@ resource "azapi_update_resource" "addons_profile" {
 }
 
 # Identity for the Application Load Balancer for the Application Gateway for Containers Addon.
-# data "azurerm_user_assigned_identity" "applicationloadbalancer" {
-#   count               = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
-#   name                = "applicationloadbalancer-${azurerm_kubernetes_cluster.this.name}"
-#   resource_group_name = azurerm_kubernetes_cluster.this.node_resource_group
-#   depends_on          = [azapi_update_resource.alb_controller_addon]
-# }
-#
-# resource "azurerm_role_assignment" "alb_network_contributor" {
-#   count                = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
-#   principal_id         = data.azurerm_user_assigned_identity.applicationloadbalancer[count.index].principal_id
-#   scope                = var.aks_alb_snet
-#   role_definition_name = "Network Contributor"
-# }
+data "azurerm_user_assigned_identity" "applicationloadbalancer" {
+  count               = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
+  name                = "applicationloadbalancer-${azurerm_kubernetes_cluster.this.name}"
+  resource_group_name = azurerm_kubernetes_cluster.this.node_resource_group
+  depends_on          = [azapi_update_resource.alb_controller_addon]
+}
+
+resource "azurerm_role_assignment" "alb_network_contributor" {
+  count                = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
+  principal_id         = data.azurerm_user_assigned_identity.applicationloadbalancer[count.index].principal_id
+  scope                = var.aks_alb_snet
+  role_definition_name = "Network Contributor"
+}

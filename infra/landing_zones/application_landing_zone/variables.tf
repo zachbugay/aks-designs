@@ -194,7 +194,13 @@ variable "authorized_ip_ranges" {
 }
 
 variable "application_gateway_for_containers" {
-  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
+  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed add-on."
+  type        = bool
+  default     = false
+}
+
+variable "application_routing_addon_gateway_api" {
+  description = "(Optional) Enable the Application Routing add-on Gateway."
   type        = bool
   default     = false
 }

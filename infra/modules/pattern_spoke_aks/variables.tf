@@ -113,6 +113,12 @@ variable "application_gateway_for_containers" {
   default     = false
 }
 
+variable "application_routing_addon_gateway_api" {
+  description = "(Optional) Enable the Application Routing Add-on Gateway Istio API."
+  type        = bool
+  default     = false
+}
+
 variable "authorized_ip_ranges" {
   description = "(Optional) IP Address ranges to grant access to the cluster."
   type        = list(string)

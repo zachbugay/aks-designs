@@ -15,7 +15,7 @@ locals {
   #   [0] aks-cluster /24           10.100.12.0/24
   #   [1] aks-alb /24               10.100.13.0/24
   #   [2] agw-24 /24                10.100.14.0/24
-  #   [3] aks-api-server /28        10.100.15.0/28
+  #   [3] aks-api-server /28        10.100.15.0/28 - Minimum supported API server subnet size is /28. https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration
 
   aks_subnets = cidrsubnets(var.vnet_address_space[0], 2, 2, 2, 6)
 
@@ -262,7 +262,7 @@ module "aks" {
       enabled = var.application_gateway_for_containers
     }
     application_routing_gateway_api = {
-      enabled = true
+      enabled = var.application_routing_addon_gateway_api
     }
     node_auto_provisioning = {
       enabled = true
@@ -337,15 +337,12 @@ resource "azurerm_role_assignment" "admin_keyvault_administrator" {
   role_definition_name = "Key Vault Administrator"
 }
 
-# The Application Gateway for Containers (ALB) addon is currently disabled in the
-# kubernetes_services module, so its identity does not exist to grant Key Vault access to.
-# See base_modules/kubernetes_services/outputs.tf: alb_identity_principal_id.
-# resource "azurerm_role_assignment" "alb_keyvault_secrets_user" {
-#   count                = var.application_gateway_for_containers ? 1 : 0
-#   principal_id         = module.aks.alb_identity_principal_id
-#   scope                = module.private_key_vault.id
-#   role_definition_name = "Key Vault Secrets User"
-# }
+resource "azurerm_role_assignment" "alb_keyvault_secrets_user" {
+  count                = var.application_gateway_for_containers ? 1 : 0
+  principal_id         = module.aks.alb_identity_principal_id
+  scope                = module.private_key_vault.id
+  role_definition_name = "Key Vault Secrets User"
+}
 
 resource "azurerm_role_assignment" "kubelet_keyvault_secrets_user" {
   principal_id         = module.aks.kubelet_identity_principal_id
@@ -353,6 +350,7 @@ resource "azurerm_role_assignment" "kubelet_keyvault_secrets_user" {
   role_definition_name = "Key Vault Secrets User"
 }
 
+# Manual Application Gateway setup.
 module "public_ip_agw" {
   source              = "../base_modules/public_ip"
   count               = var.application_gateway.enabled ? 1 : 0

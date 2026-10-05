@@ -394,4 +394,9 @@ variable "addons_profile" {
       enabled = false
     }
   }
+
+  validation {
+    condition     = contains(["BpfVeth", "None"], var.addons_profile.advanced_network_policies.performance.accelerationMode)
+    error_message = "var.addons_profile.advanced_network_policies.performance.accelerationMode must be either 'BpfVeth' or 'None'."
+  }
 }
