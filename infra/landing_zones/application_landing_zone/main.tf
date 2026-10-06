@@ -32,6 +32,7 @@ resource "random_string" "deployment_token" {
 locals {
   admin_object_ids = var.admin_object_ids != "" ? split(",", var.admin_object_ids) : null
   vm_size          = var.aks_node_pool_vm_size
+  # config           = yamldecode(file("${path.module}/${var.config_path}"))
 }
 
 module "spoke_aks" {
@@ -76,9 +77,10 @@ module "spoke_aks" {
   }
 
   system_node_pool = {
-    name                         = "systempool"
-    vm_size                      = local.vm_size
-    zones                        = ["1", "2", "3"]
+    name    = "systempool"
+    vm_size = local.vm_size
+    # zones                        = ["1", "2", "3"]
+    zones                        = ["1", "3"] # South Central only has 1, 3
     os                           = "AzureLinux"
     min_count                    = 1
     max_count                    = 8

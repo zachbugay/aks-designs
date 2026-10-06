@@ -396,6 +396,13 @@ resource "azapi_update_resource" "addons_profile" {
 
   ignore_missing_property = true
 
+  retry = {
+    error_message_regex = ["User-installed iptables rules found"]
+    attempts            = 5
+    delay               = "30s"
+    max_delay           = "60s"
+  }
+
   depends_on = [
     azurerm_kubernetes_cluster_node_pool.this
   ]
@@ -406,7 +413,7 @@ data "azurerm_user_assigned_identity" "applicationloadbalancer" {
   count               = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
   name                = "applicationloadbalancer-${azurerm_kubernetes_cluster.this.name}"
   resource_group_name = azurerm_kubernetes_cluster.this.node_resource_group
-  depends_on          = [azapi_update_resource.alb_controller_addon]
+  depends_on          = [azapi_update_resource.addons_profile]
 }
 
 resource "azurerm_role_assignment" "alb_network_contributor" {

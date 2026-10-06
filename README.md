@@ -27,18 +27,18 @@ az extension add --name monitor-control-service --yes
 
 ## Environment Variables Reference
 
-| Variable                     | Required | Description                                                            |
-| ---------------------------- | -------- | -----------------------------------------------------------------------|
-| `AZURE_ENV_NAME`             | Yes      | Environment name (e.g., `nonprod`)                                     |
-| `AZURE_WORKLOAD_ENV_NAME`    | Yes      | Workload environment (e.g., `dev`)                                     |
-| `AZURE_LOCATION`             | Yes      | Azure region (e.g., `westus3`)                                         |
-| `AZURE_SUBSCRIPTION_ID`      | Yes      | Azure subscription ID                                                  |
-| `AZURE_TENANT_ID`            | Yes      | Azure tenant ID                                                        |
-| `ADMIN_OBJECT_IDS`           | Yes      | Comma-separated Entra ID group object IDs for AKS admin access         |
-| `ALERT_EMAIL`                | Yes      | Email address for AKS alert notifications                              |
-| `AZURE_VPN_GATEWAY`          | Yes      | Whether to enable an Azure VPN Gateway or not.                         |
-| `AZURE_FIREWALL`             | Yes      | JSON enabling the Azure Firewall with a specific SKU.                  |
-| `AKS_ENVIRONMENT`            | Yes      | AKS Environment (e.g., `dev`)                                          |
+| Variable                     | Required | Description                                                    |
+| ---------------------------- | -------- | ---------------------------------------------------------------|
+| `AZURE_ENV_NAME`             | Yes      | Environment name (e.g., `nonprod`)                             |
+| `AZURE_WORKLOAD_ENV_NAME`    | Yes      | Workload environment (e.g., `dev`)                             |
+| `AZURE_LOCATION`             | Yes      | Azure region (e.g., `westus3`)                                 |
+| `AZURE_SUBSCRIPTION_ID`      | Yes      | Azure subscription ID                                          |
+| `AZURE_TENANT_ID`            | Yes      | Azure tenant ID                                                |
+| `ADMIN_OBJECT_IDS`           | Yes      | Comma-separated Entra ID group object IDs for AKS admin access |
+| `ALERT_EMAIL`                | Yes      | Email address for AKS alert notifications                      |
+| `AZURE_VPN_GATEWAY`          | Yes      | Whether to enable an Azure VPN Gateway or not.                 |
+| `AZURE_FIREWALL`             | Yes      | JSON enabling the Azure Firewall with a specific SKU.          |
+| `AKS_ENVIRONMENT`            | Yes      | AKS Environment (e.g., `dev`)                                  |
 
 ## Quick Start
 
@@ -51,11 +51,12 @@ azd env set ADMIN_OBJECT_IDS "<comma-separated group object IDs>"
 azd env set AKS_NODE_POOL_VM_SIZE "Standard_D4as_v7"
 azd env set AKS_ENVIRONMENT "dev"
 azd env set AKS_APPLICATION_GATEWAY_FOR_CONTAINERS "true"
+azd env set AKS_APPLICATION_ROUTING_ADDON_GATEWAY_API "true"
 azd env set ALERT_EMAIL "<your email>"
 
 azd env set AZURE_ENV_NAME "nonprod"
 azd env set AZURE_WORKLOAD_ENV_NAME "dev"
-azd env set AZURE_LOCATION "canadaeast"
+azd env set AZURE_LOCATION "southcentral"
 azd env set AZURE_SUBSCRIPTION_ID "<your subscription id>"
 azd env set AZURE_TENANT_ID "<your tenant id>"
 azd env set AZURE_VPN_GATEWAY "true"
