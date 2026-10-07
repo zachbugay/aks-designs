@@ -5,7 +5,7 @@ variable "workload" {
 }
 
 variable "workload_management" {
-  description = "(Required) Management workload"
+  description = "(Optional) Management workload"
   type        = string
   default     = "mgt"
 }
@@ -232,11 +232,6 @@ variable "tags" {
   description = "(Optional) A mapping of tags to assign to the resource."
   type        = map(string)
   default     = null
-}
-
-variable "alert_email" {
-  description = "(Optional) An email to send alerts to."
-  type        = string
 }
 
 variable "deployment_token" {

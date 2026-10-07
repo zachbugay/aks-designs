@@ -1,0 +1,38 @@
+environment: "nonprod"
+workload: "shared_hub"
+workload_environment: "dev"
+landing_zones:
+  common:
+    admin_object_ids:
+      - "11111111-1111-1111-1111-111111111111"
+    alert_emails:
+      - "jane.doe@example.com"
+    tags:
+      CostCenter: "CS123"
+      Department: "CPET"
+      Owner: "Cloud Platform Enablement Team"
+  platform:
+      address_space_hub:
+        - "10.100.0.0/22"
+      address_space_spoke_dns:
+        - "10.100.4.0/24"
+      address_space_spoke_private_monitoring:
+        - "10.100.5.0/24"
+      firewall:
+        enabled: true
+        sku_tier: "Standard"
+        sku_name: "AZFW_VNet"
+        default_rules: true
+      nat_gateway:
+        public_ip_count: 1
+      network_security_group: true
+      private_monitoring: true
+      spoke_dns: true
+      virtual_network_gateway: 
+        enabled: true
+        vpn:
+          p2s_enabled: true
+          auth_types: "AAD"
+  application:
+    aks: "value"
+    key: "value"

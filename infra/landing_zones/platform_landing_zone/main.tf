@@ -30,36 +30,53 @@ resource "random_string" "deployment_token" {
 }
 
 locals {
-  admin_object_ids  = var.admin_object_ids != "" ? split(",", var.admin_object_ids) : null
-  p2s_vpn_enabled   = (var.virtual_network_gateway && var.point_to_site_vpn)
-  vpn_auth_types    = (var.virtual_network_gateway && var.point_to_site_vpn) ? ["AAD"] : null
+  config = yamldecode(file("${path.root}/${var.config_file}"))
+
+  address_space_hub                      = local.config.landing_zones.platform.address_space_hub
+  address_space_spoke_dns                = local.config.landing_zones.platform.address_space_spoke_dns
+  address_space_spoke_private_monitoring = local.config.landing_zones.platform.address_space_spoke_private_monitoring
+  admin_object_ids                       = local.config.landing_zones.common.admin_object_ids
+  common_tags                            = local.config.landing_zones.common.tags
+  environment                            = local.config.environment
+  firewall                               = local.config.landing_zones.platform.firewall
+  nat_gateway                            = local.config.landing_zones.platform.nat_gateway
+  network_security_group                 = local.config.landing_zones.platform.network_security_group
+  private_monitoring                     = local.config.landing_zones.platform.private_monitoring
+  spoke_dns                              = local.config.landing_zones.platform.spoke_dns
+  virtual_network_gateway                = local.config.landing_zones.platform.virtual_network_gateway
+  workload                               = local.config.workload
+  workload_environment                   = local.config.workload_environment
 }
 
 module "pattern_hub_and_spoke" {
   source = "../../modules/pattern_hub_and_spoke"
 
-  address_space_hub                                = ["10.100.0.0/22"]
-  address_space_spoke_dns                          = ["10.100.4.0/24"]
-  address_space_spoke_private_monitoring           = ["10.100.5.0/24"]
-  admin_object_ids                                 = local.admin_object_ids
-  alert_email                                      = var.alert_email
-  bastion                                          = false
-  connection_monitor                               = true
-  environment                                      = var.environment
-  firewall                                         = var.firewall
-  virtual_network_gateway                          = var.virtual_network_gateway
-  p2s_vpn                                          = local.p2s_vpn_enabled
-  vpn_auth_types                                   = local.vpn_auth_types
-  location                                         = var.location
-  nat_gateway_public_ip_count                      = var.nat_gateway_public_ip_count
-  network_security_group                           = true
-  private_monitoring                               = true
-  deployment_token                                 = random_string.deployment_token.result
-  spoke_dns                                        = true
-  tenant_id                                        = var.tenant_id
-  update_management                                = true
-  workload                                         = "shared-hub"
-  workload_environment                             = var.workload_environment
-  tags                                             = var.common_tags
-}
+  # Computed
+  deployment_token = random_string.deployment_token.result
+  tags = merge(
+    local.common_tags,
+    { "environment" = local.environment },
+    { "workload_environment" = local.workload_environment }
+  )
 
+  # Variables
+  location  = var.location
+  tenant_id = var.tenant_id
+
+  # YAML Definitions
+  address_space_hub                      = local.address_space_hub
+  address_space_spoke_dns                = local.address_space_spoke_dns
+  address_space_spoke_private_monitoring = local.address_space_spoke_private_monitoring
+  admin_object_ids                       = local.admin_object_ids
+  environment                            = local.environment
+  firewall                               = local.firewall
+  nat_gateway_public_ip_count            = local.nat_gateway.public_ip_count
+  network_security_group                 = local.network_security_group
+  p2s_vpn                                = local.virtual_network_gateway.vpn.p2s_enabled
+  private_monitoring                     = local.private_monitoring
+  spoke_dns                              = local.spoke_dns
+  virtual_network_gateway                = local.virtual_network_gateway.enabled
+  vpn_auth_types                         = local.virtual_network_gateway.vpn.auth_types
+  workload                               = local.workload
+  workload_environment                   = local.workload_environment
+}

@@ -1,12 +1,12 @@
- output "azure_monitor_workspace_id" {
+output "azure_monitor_workspace_id" {
   description = "The ID of the Log Azure Monitor Workspace."
-  value = module.hub.azure_monitor_workspace_id
+  value       = module.hub.azure_monitor_workspace_id
 }
 
- output "firewall_private_ip" {
+output "firewall_private_ip" {
   description = "The ID of the Firewall."
-  value = var.firewall.enabled ? module.hub.firewall_private_ip : null
- }
+  value       = var.firewall.enabled ? module.hub.firewall_private_ip : null
+}
 
 output "hub_private_endpoint_subnet_id" {
   value = module.hub.private_endpoint_subnet_id
@@ -53,4 +53,3 @@ output "dns_servers" {
 output "virtual_network_gateway_route_table_name" {
   value = module.hub.virtual_network_gateway_route_table_name
 }
-

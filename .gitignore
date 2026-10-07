@@ -75,3 +75,6 @@ root-application.json
 # Custom - ignore secrets.txt
 secrets.txt
 
+**/*.local.yaml
+
+**/outputs/**.yaml
