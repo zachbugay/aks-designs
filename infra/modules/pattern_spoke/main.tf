@@ -25,7 +25,7 @@ locals {
 
 module "resource_group" {
   source        = "../base_modules/resource_group"
-  random_string = var.random_string
+  deployment_token = var.deployment_token
   location      = var.location
   environment   = var.environment
   workload      = var.workload
@@ -35,7 +35,7 @@ module "resource_group" {
 
 module "virtual_network" {
   source              = "../base_modules/virtual_network"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -48,7 +48,7 @@ module "virtual_network" {
 
 module "subnet" {
   source               = "../base_modules/subnet"
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   count                = var.subnet_count
   location             = var.location
   environment          = var.environment
@@ -61,7 +61,7 @@ module "subnet" {
 
 module "network_security_group" {
   source              = "../base_modules/network_security_group"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   count               = var.network_security_group ? 1 : 0
   location            = var.location
   environment         = var.environment
@@ -140,7 +140,7 @@ data "cloudinit_config" "nva" {
 
 module "linux_virtual_machine" {
   source                = "../base_modules/linux_virtual_machine"
-  random_string         = var.random_string
+  deployment_token         = var.deployment_token
   count                 = var.linux_virtual_machine ? var.subnet_count : 0
   location              = var.location
   environment           = var.environment
@@ -160,7 +160,7 @@ module "linux_virtual_machine" {
 
 module "maintenance_configuration" {
   source                 = "../base_modules/maintenance_configuration"
-  random_string          = var.random_string
+  deployment_token          = var.deployment_token
   count                  = (var.linux_virtual_machine && var.update_management) ? 1 : 0
   location               = var.location
   environment            = var.environment

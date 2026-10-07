@@ -18,8 +18,5 @@ terraform {
     azurecaf = {
       source = "aztfmod/azurecaf"
     }
-    kubernetes = {
-      source = "hashicorp/kubernetes"
-    }
   }
 }

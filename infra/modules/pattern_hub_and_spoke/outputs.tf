@@ -1,73 +1,56 @@
+ output "azure_monitor_workspace_id" {
+  description = "The ID of the Log Azure Monitor Workspace."
+  value = module.hub.azure_monitor_workspace_id
+}
+
+ output "firewall_private_ip" {
+  description = "The ID of the Firewall."
+  value = var.firewall.enabled ? module.hub.firewall_private_ip : null
+ }
+
+output "hub_private_endpoint_subnet_id" {
+  value = module.hub.private_endpoint_subnet_id
+}
+
 output "hub_resource_group_name" {
   description = "The name of the resource group of the spoke."
   value       = module.hub.resource_group_name
 }
 
-output "gateway_public_ip_address" {
-  description = "The public IP address of the Gateway."
-  value       = var.gateway ? module.hub.gateway_public_ip_address : null
-}
-
-output "gateway_id" {
-  description = "The ID of the Gateway."
-  value       = var.gateway ? module.hub.gateway_id : null
-}
-
-output "kube_config" {
-  value     = module.spoke_aks.kube_config
-  sensitive = true
-}
-
-output "application_gateway_public_ip_address" {
-  description = "The public IP address of the Application Gateway."
-  value       = var.application_gateway ? module.hub.application_gateway_public_ip_address : null
-}
-
-output "aks_application_gateway_public_ip_address" {
-  description = "The public IP address of the AKS spoke Application Gateway. Point the application DNS records at this address."
-  value       = module.spoke_aks.application_gateway_public_ip_address
-}
-
-output "acr_name" {
-  description = "The Container Registry name this cluster has AcrPull access to."
-  value       = module.spoke_aks.acr_name
-}
-
-output "acr_id" {
-  description = "The Container Registry ID this cluster has AcrPull access to."
-  value       = module.spoke_aks.acr_id
-}
-
-output "acr_endpoint" {
-  description = "The Container Registry endpoint."
-  value       = module.spoke_aks.acr_endpoint
-}
-
-output "aks_alb_snet_id" {
-  value = module.spoke_aks.aks_alb_subnet_id
-}
-
-output "log_analytics_workspace_id" {
-  description = "The ID of the Log Analytics Workspace to log Application Gateway."
-  value       = module.hub.log_analytics_workspace_id
-}
-
-output "AZURE_AKS_CLUSTER_NAME" {
-  description = "The name of the AKS cluster."
-  value       = module.spoke_aks.AZURE_AKS_CLUSTER_NAME
-}
-
-output "aks_resource_group_name" {
-  description = "The name of the AKS resource group."
-  value       = module.spoke_aks.resource_group_name
+output "hub_virtual_network_id" {
+  value = module.hub.virtual_network_id
 }
 
 output "key_vault_name" {
   description = "The name of the Key Vault."
-  value       = module.spoke_aks.key_vault_name
+  value       = try(module.private_key_vault[0].name, null)
 }
 
-output "kubelet_identity_client_id" {
-  description = "The client ID of the kubelet managed identity."
-  value       = module.spoke_aks.kubelet_identity_client_id
+output "log_analytics_workspace_id" {
+  description = "The ID of the Log Analytics Workspace."
+  value       = module.hub.log_analytics_workspace_id
 }
+
+output "private_dns_zones" {
+  description = "Set of private DNS zones configured in the DNS spoke."
+  value       = try(module.spoke_dns[0].private_dns_zones, null)
+}
+
+output "virtual_network_gateway_id" {
+  description = "The ID of the Gateway."
+  value       = var.virtual_network_gateway ? module.hub.virtual_network_gateway_id : null
+}
+
+output "virtual_network_gateway_public_ip_address" {
+  description = "The public IP address of the Gateway."
+  value       = var.virtual_network_gateway ? module.hub.virtual_network_gateway_public_ip_address : null
+}
+
+output "dns_servers" {
+  value = local.dns_servers
+}
+
+output "virtual_network_gateway_route_table_name" {
+  value = module.hub.virtual_network_gateway_route_table_name
+}
+

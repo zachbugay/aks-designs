@@ -20,7 +20,7 @@ module "locations" {
 }
 
 resource "azurerm_monitor_workspace" "this" {
-  name                          = coalesce(var.custom_name, "${var.environment}-mamw-mon-${var.random_string}-${local.instance}")
+  name                          = coalesce(var.custom_name, "${var.environment}-mamw-mon-${var.deployment_token}-${local.instance}")
   resource_group_name           = var.resource_group_name
   location                      = module.locations.name
   public_network_access_enabled = var.public_network_access_enabled

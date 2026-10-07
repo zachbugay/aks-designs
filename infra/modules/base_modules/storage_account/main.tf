@@ -18,7 +18,7 @@ resource "azurecaf_name" "this" {
   name          = var.workload
   resource_type = "azurerm_storage_account"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -44,7 +44,7 @@ resource "azurerm_storage_account" "this" {
   min_tls_version                  = var.min_tls_version
   allow_nested_items_to_be_public  = var.allow_nested_items_to_be_public
   shared_access_key_enabled        = var.shared_access_key_enabled
-  public_network_access_enabled    = var.public_network_access_enabled
+  public_network_access            = var.public_network_access
   default_to_oauth_authentication  = var.default_to_oauth_authentication
   is_hns_enabled                   = var.is_hns_enabled
   nfsv3_enabled                    = var.nfsv3_enabled
@@ -55,6 +55,7 @@ resource "azurerm_storage_account" "this" {
     ip_rules                   = var.network_rules_ip_rules
     virtual_network_subnet_ids = var.network_rules_virtual_network_subnet_ids
   }
+
   tags = local.tags
 
   lifecycle {

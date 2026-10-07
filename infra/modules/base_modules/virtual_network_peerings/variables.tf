@@ -36,7 +36,7 @@ variable "allow_forwarded_traffic" {
   default     = true
 }
 
-variable "gateway_exists" {
+variable "virtual_network_gateway_exists" {
   description = "(Optional) Is there a Virtual Network Gateway?"
   type        = bool
   default     = false

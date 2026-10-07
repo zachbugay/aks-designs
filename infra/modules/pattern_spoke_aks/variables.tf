@@ -19,8 +19,8 @@ variable "instance" {
   default     = "001"
 }
 
-variable "address_space" {
-  description = "(Required) The address space that is used the AKS spoke."
+variable "vnet_address_space" {
+  description = "(Required) The VNet address space that is used the AKS spoke."
   type        = list(string)
 }
 
@@ -40,10 +40,65 @@ variable "admin_object_ids" {
   type        = list(string)
 }
 
-variable "vm_size" {
-  description = "VM Size of all node pools."
-  type        = string
-  default     = "Standard_D2as_v7"
+variable "system_node_pool" {
+  description = "(Optional) User node pools that should also be created."
+  type = object({
+    name                         = string
+    vm_size                      = string
+    zones                        = set(string)
+    os                           = string
+    min_count                    = number
+    max_count                    = number
+    max_pods                     = number
+    vnet_subnet_id               = optional(string, "")
+    only_critical_addons_enabled = bool
+  })
+
+  validation {
+    condition     = contains(toset(["AzureLinux", "Ubuntu"]), var.system_node_pool.os)
+    error_message = "os must be one of: 'AzureLinux', 'Ubuntu'"
+  }
+
+  # validation {
+  #   condition     = alltrue([for pool in var.system_node_pool : length(pool.name) >= 1 && length(pool.name) <= 12])
+  #   error_message = "Each user node pool 'name' must be between 1 and 12 characters long."
+  # }
+  #
+  # validation {
+  #   condition     = alltrue([for pool in var.system_node_pool : can(regex("^[a-z][a-z0-9]*$", pool.name))])
+  #   error_message = "Each user node pool 'name' must begin with a lowercase letter and contain only lowercase alphanumeric characters."
+  # }
+}
+
+variable "user_node_pools" {
+  description = "(Optional) User node pools that should also be created."
+  type = map(object({
+    name           = string
+    node_count     = number
+    vm_size        = string
+    os             = string
+    vnet_subnet_id = optional(string, "")
+    upgrade_settings = optional(object({
+      drain_timeout_in_minutes      = number
+      max_surge                     = string
+      node_soak_duration_in_minutes = number
+      }),
+      {
+        drain_timeout_in_minutes      = 0
+        max_surge                     = "10%"
+        node_soak_duration_in_minutes = 0
+    })
+  }))
+
+  validation {
+    condition     = alltrue([for pool in var.user_node_pools : length(pool.name) >= 1 && length(pool.name) <= 12])
+    error_message = "Each user node pool 'name' must be between 1 and 12 characters long."
+  }
+
+  validation {
+    condition     = alltrue([for pool in var.user_node_pools : can(regex("^[a-z][a-z0-9]*$", pool.name))])
+    error_message = "Each user node pool 'name' must begin with a lowercase letter and contain only lowercase alphanumeric characters."
+  }
 }
 
 variable "kubernetes_version" {
@@ -52,16 +107,22 @@ variable "kubernetes_version" {
   default     = "1.36.3"
 }
 
+variable "application_gateway_for_containers" {
+  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
+  type        = bool
+  default     = false
+}
+
+variable "application_routing_addon_gateway_api" {
+  description = "(Optional) Enable the Application Routing Add-on Gateway Istio API."
+  type        = bool
+  default     = false
+}
+
 variable "authorized_ip_ranges" {
   description = "(Optional) IP Address ranges to grant access to the cluster."
   type        = list(string)
   default     = null
-}
-
-variable "firewall" {
-  description = "(Optional) Firewall in Hub?"
-  type        = bool
-  default     = false
 }
 
 variable "network_security_group" {
@@ -221,19 +282,19 @@ variable "tags" {
 }
 
 variable "hub_virtual_network_id" {
-  description = "(Required) Hub AKS spoke ID for VNet peering."
+  description = "(Required) Hub Virtual Network ID for VNet peering."
   type        = string
 }
 
 variable "hub_resource_group_name" {
-  description = "(Required) Hub resource group name for VNet peering."
+  description = "(Required) Hub resource group name."
   type        = string
 }
 
-variable "gateway_exists" {
+variable "virtual_network_gateway_exists" {
   description = "(Optional) Is there a Virtual Network Gateway?"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "subnets_next_hop" {
@@ -252,17 +313,12 @@ variable "alert_email" {
   type        = string
 }
 
-variable "random_string" {
+variable "deployment_token" {
   description = "(Optional) A random string suffix to ensure all resources in a deployment share the same identifier."
   type        = string
   default     = ""
 }
 
-variable "application_gateway_for_containers" {
-  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed addon."
-  type        = bool
-  default     = false
-}
 variable "key_vault_private_dns_zone_resource_id" {
   description = "(Optional) The resource ID of the privatelink.vaultcore.azure.net Private DNS Zone to register the Key Vault private endpoint in."
   type        = string
@@ -272,7 +328,7 @@ variable "key_vault_private_dns_zone_resource_id" {
 variable "enable_private_api_server" {
   description = "(Optional) Whether or not the Kubernetes API Server should be privately accessible"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "private_dns_zone_id" {
@@ -288,30 +344,22 @@ variable "private_endpoint_subnet_resource_id" {
 
 variable "application_gateway" {
   description = "(Optional) Deploy an Application Gateway in front of the cluster's in-cluster gateway."
-  type        = bool
-  default     = false
-}
-
-variable "application_gateway_backend_ip_addresses" {
-  description = "(Optional) The backend IP addresses of the Application Gateway, typically the internal load balancer IP of the in-cluster gateway."
-  type        = list(string)
-  default     = []
-}
-
-variable "application_gateway_certificate_common_name" {
-  description = "(Optional) The common name of the self signed Application Gateway frontend certificate. Defaults to the first hostname in application_gateway_applications."
-  type        = string
-  default     = null
-}
-
-variable "application_gateway_trusted_root_certificate_pem" {
-  description = "(Optional) PEM encoded root certificate that signs the backend TLS certificates presented by the in-cluster gateway. When null, the default trusted certificate authorities are used."
-  type        = string
-  default     = null
+  type = object({
+    enabled                      = bool
+    backend_ip_addresses         = list(string)
+    certificate_common_name      = optional(string)
+    trusted_root_certificate_pem = optional(string)
+  })
+  default = {
+    enabled                      = false
+    backend_ip_addresses         = []
+    certificate_common_name      = null
+    trusted_root_certificate_pem = null
+  }
 }
 
 variable "application_gateway_applications" {
-  description = "(Optional) Applications published through the Application Gateway. Required when application_gateway is true."
+  description = "(Optional) Applications published through the Application Gateway. Required when application_gateway.enabled is true."
   type = map(object({
     hostname                  = string
     https_port                = optional(number, 443)

@@ -25,7 +25,7 @@ resource "azurecaf_name" "vm" {
   name          = var.workload
   resource_type = "azurerm_linux_virtual_machine"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -33,7 +33,7 @@ resource "azurecaf_name" "nic" {
   name          = var.workload
   resource_type = "azurerm_network_interface"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 

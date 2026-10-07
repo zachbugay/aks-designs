@@ -39,7 +39,7 @@ module "key_vault" {
   location                        = module.locations.name
   public_network_access_enabled   = var.public_network_access_enabled
   purge_protection_enabled        = var.purge_protection_enabled
-  random_string                   = var.random_string
+  deployment_token                   = var.deployment_token
   rbac_authorization_enabled      = true
   resource_group_name             = var.resource_group_name
   sku_name                        = var.sku_name
@@ -83,7 +83,7 @@ resource "azurecaf_name" "managed_identity" {
   name          = "kv-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 

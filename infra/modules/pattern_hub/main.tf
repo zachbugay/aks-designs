@@ -1,5 +1,5 @@
 locals {
-  public_ip_virtual_network_gateway_count = var.gateway ? 1 + (var.gateway_active_active ? 1 : 0) : 0
+  public_ip_virtual_network_gateway_count = var.virtual_network_gateway ? 1 + (var.gateway_active_active ? 1 : 0) : 0
 
   module_tags = tomap(
     {
@@ -17,13 +17,12 @@ locals {
   #   4 -> /26 (64 IPs)    – required minimum for firewall and bastion subnets
   #
   # Layout (for 10.100.0.0/22):
-  #   [0] GatewaySubnet                  /27  10.100.0.0/27
-  #   [1] ApplicationGatewaySubnet       /27  10.100.0.32/27
-  #   [2] AzureFirewallSubnet            /26  10.100.0.64/26
-  #   [3] AzureFirewallManagementSubnet  /26  10.100.0.128/26
-  #   [4] AzureBastionSubnet             /26  10.100.0.192/26
-  #   [5] snet-private-endpoints         /26  10.100.1.0/26
-  hub_subnets = cidrsubnets(var.address_space[0], 5, 5, 4, 4, 4, 4)
+  #   [0] AzureFirewallSubnet            /26  TODO: Re-calculate for my own purposes.
+  #   [1] AzureFirewallManagementSubnet  /26  TODO: Re-calculate for my own purposes.
+  #   [2] AzureBastionSubnet             /26  TODO: Re-calculate for my own purposes.
+  #   [3] snet-private-endpoints         /26  TODO: Re-calculate for my own purposes.
+  #   [4] GatewaySubnet                  /27  TODO: Re-calculate for my own purposes.
+  hub_subnets = cidrsubnets(var.address_space[0], 4, 4, 4, 4, 5)
 }
 
 module "resource_group" {
@@ -31,7 +30,7 @@ module "resource_group" {
   environment   = var.environment
   instance      = var.instance
   location      = var.location
-  random_string = var.random_string
+  deployment_token = var.deployment_token
   workload      = var.workload
   tags          = local.tags
 }
@@ -41,7 +40,7 @@ module "resource_group_management" {
   environment   = var.environment
   instance      = var.instance
   location      = var.location
-  random_string = var.random_string
+  deployment_token = var.deployment_token
   workload      = var.workload_management
   tags          = local.tags
 }
@@ -51,7 +50,7 @@ module "log_analytics_workspace" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = var.workload_management
   resource_group_name = module.resource_group_management.name
   tags                = local.tags
@@ -62,7 +61,7 @@ module "monitor_workspace" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = var.workload_management
   resource_group_name = module.resource_group_management.name
   tags                = local.tags
@@ -75,32 +74,20 @@ module "virtual_network" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = var.workload
   resource_group_name = module.resource_group.name
   tags                = local.tags
 }
 
-module "subnet_gateway" {
-  source               = "../base_modules/subnet"
-  address_prefixes     = [local.hub_subnets[0]]
-  custom_name          = "GatewaySubnet"
-  environment          = var.environment
-  location             = var.location
-  random_string        = var.random_string
-  resource_group_name  = module.resource_group.name
-  virtual_network_name = module.virtual_network.name
-  workload             = var.workload
-}
-
 module "subnet_firewall" {
   source               = "../base_modules/subnet"
   count                = var.firewall.enabled ? 1 : 0
-  address_prefixes     = [local.hub_subnets[2]]
+  address_prefixes     = [local.hub_subnets[0]]
   custom_name          = "AzureFirewallSubnet"
   environment          = var.environment
   location             = var.location
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   resource_group_name  = module.resource_group.name
   virtual_network_name = module.virtual_network.name
   workload             = var.workload
@@ -109,11 +96,11 @@ module "subnet_firewall" {
 module "subnet_firewall_management" {
   source               = "../base_modules/subnet"
   count                = (var.firewall.enabled) ? 1 : 0
-  address_prefixes     = [local.hub_subnets[3]]
+  address_prefixes     = [local.hub_subnets[1]]
   custom_name          = "AzureFirewallManagementSubnet"
   environment          = var.environment
   location             = var.location
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   resource_group_name  = module.resource_group.name
   virtual_network_name = module.virtual_network.name
   workload             = var.workload
@@ -122,23 +109,35 @@ module "subnet_firewall_management" {
 module "subnet_bastion" {
   source               = "../base_modules/subnet"
   count                = var.bastion ? 1 : 0
-  address_prefixes     = [local.hub_subnets[4]]
+  address_prefixes     = [local.hub_subnets[2]]
   custom_name          = "AzureBastionSubnet"
   environment          = var.environment
   location             = var.location
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
+  resource_group_name  = module.resource_group.name
+  virtual_network_name = module.virtual_network.name
+  workload             = var.workload
+} 
+
+module "subnet_private_endpoints" {
+  source               = "../base_modules/subnet"
+  address_prefixes     = [local.hub_subnets[3]]
+  custom_name          = "snet-private-endpoints"
+  environment          = var.environment
+  location             = var.location
+  deployment_token        = var.deployment_token
   resource_group_name  = module.resource_group.name
   virtual_network_name = module.virtual_network.name
   workload             = var.workload
 }
 
-module "subnet_private_endpoints" {
+module "subnet_gateway" {
   source               = "../base_modules/subnet"
-  address_prefixes     = [local.hub_subnets[5]]
-  custom_name          = "snet-private-endpoints"
+  address_prefixes     = [local.hub_subnets[4]]
+  custom_name          = "GatewaySubnet"
   environment          = var.environment
   location             = var.location
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   resource_group_name  = module.resource_group.name
   virtual_network_name = module.virtual_network.name
   workload             = var.workload
@@ -150,7 +149,7 @@ module "public_ip_virtual_network_gateway" {
   environment         = var.environment
   instance            = "00${count.index + 1}"
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   resource_group_name = module.resource_group.name
   tags                = local.tags
   workload            = "vgw"
@@ -158,7 +157,7 @@ module "public_ip_virtual_network_gateway" {
 
 module "virtual_network_gateway" {
   source        = "../base_modules/virtual_network_gateway"
-  count         = (var.gateway) ? 1 : 0
+  count         = (var.virtual_network_gateway) ? 1 : 0
   active_active = var.gateway_active_active
   asn           = var.asn
   environment   = var.environment
@@ -171,11 +170,11 @@ module "virtual_network_gateway" {
   location              = var.location
   p2s_root_certificates = var.p2s_root_certificates
   p2s_vpn               = var.p2s_vpn
-  random_string         = var.random_string
+  deployment_token         = var.deployment_token
   resource_group_name   = module.resource_group.name
-  sku                   = var.gateway_sku
+  sku                   = var.virtual_network_gateway_sku
   tags                  = local.tags
-  type                  = var.gateway_type
+  type                  = var.virtual_network_gateway_type
   vpn_auth_types        = var.vpn_auth_types
   workload              = var.workload
 }
@@ -185,7 +184,7 @@ module "route_table_gateway" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = "vgw"
   resource_group_name = module.resource_group.name
   tags                = local.tags
@@ -203,7 +202,7 @@ module "public_ip_firewall" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = "fw"
   resource_group_name = module.resource_group.name
   tags                = local.tags
@@ -215,7 +214,7 @@ module "public_ip_firewall_management" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = "fw-mgmt"
   resource_group_name = module.resource_group.name
   tags                = local.tags
@@ -229,7 +228,7 @@ module "firewall_policy" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   sku                 = var.firewall.sku_tier
   workload            = var.workload
   resource_group_name = module.resource_group.name
@@ -245,7 +244,7 @@ module "firewall" {
   location                   = var.location
   log_analytics_workspace_id = module.log_analytics_workspace.id
   public_ip_address_id       = module.public_ip_firewall[0].id
-  random_string              = var.random_string
+  deployment_token              = var.deployment_token
   resource_group_name        = module.resource_group.name
   sku_tier                   = var.firewall.sku_tier
   subnet_id                  = module.subnet_firewall[0].id
@@ -267,7 +266,7 @@ module "firewall_diagnostic_setting" {
 
 module "firewall_workbook" {
   source              = "../base_modules/firewall_workbook"
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   count               = var.firewall.enabled ? 1 : 0
   location            = var.location
   environment         = var.environment
@@ -378,7 +377,7 @@ module "public_ip_bastion" {
   environment         = var.environment
   instance            = var.instance
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   workload            = "bas"
   resource_group_name = module.resource_group.name
   tags                = local.tags
@@ -391,7 +390,7 @@ module "bastion_host" {
   instance             = var.instance
   location             = var.location
   public_ip_address_id = module.public_ip_bastion[0].id
-  random_string        = var.random_string
+  deployment_token        = var.deployment_token
   resource_group_name  = module.resource_group.name
   sku                  = var.bastion_sku
   subnet_id            = module.subnet_bastion[0].id
@@ -406,121 +405,13 @@ module "bastion_diagnostic_setting" {
   log_analytics_workspace_id = module.log_analytics_workspace.id
 }
 
-module "subnet_appgw" {
-  source               = "../base_modules/subnet"
-  address_prefixes     = [local.hub_subnets[1]]
-  count                = var.application_gateway ? 1 : 0
-  custom_name          = "ApplicationGatewaySubnet"
-  environment          = var.environment
-  location             = var.location
-  random_string        = var.random_string
-  resource_group_name  = module.resource_group.name
-  virtual_network_name = module.virtual_network.name
-  workload             = var.workload
-}
-
-module "nsg_appgw" {
-  source        = "../base_modules/network_security_group"
-  count         = var.application_gateway ? 1 : 0
-  environment   = var.environment
-  instance      = var.instance
-  location      = var.location
-  random_string = var.random_string
-  workload      = "appgw"
-
-  resource_group_name = module.resource_group.name
-  tags                = local.tags
-}
-
-resource "azurerm_network_security_rule" "appgw_allow_gateway_manager" {
-  count                       = var.application_gateway ? 1 : 0
-  access                      = "Allow"
-  destination_address_prefix  = "*"
-  destination_port_range      = "65200-65535"
-  direction                   = "Inbound"
-  name                        = "AllowGatewayManager"
-  network_security_group_name = module.nsg_appgw[0].name
-  priority                    = 100
-  protocol                    = "Tcp"
-  resource_group_name         = module.resource_group.name
-  source_address_prefix       = "GatewayManager"
-  source_port_range           = "*"
-}
-
-resource "azurerm_network_security_rule" "appgw_allow_http" {
-  count                       = var.application_gateway ? 1 : 0
-  access                      = "Allow"
-  destination_address_prefix  = "*"
-  destination_port_range      = "80"
-  direction                   = "Inbound"
-  name                        = "AllowHTTP"
-  network_security_group_name = module.nsg_appgw[0].name
-  priority                    = 200
-  protocol                    = "Tcp"
-  resource_group_name         = module.resource_group.name
-  source_address_prefix       = "Internet"
-  source_port_range           = "*"
-}
-
-resource "azurerm_network_security_rule" "appgw_allow_https" {
-  count                       = var.application_gateway ? 1 : 0
-  access                      = "Allow"
-  destination_address_prefix  = "*"
-  destination_port_range      = "443"
-  direction                   = "Inbound"
-  name                        = "AllowHTTPS"
-  network_security_group_name = module.nsg_appgw[0].name
-  priority                    = 210
-  protocol                    = "Tcp"
-  resource_group_name         = module.resource_group.name
-  source_address_prefix       = "Internet"
-  source_port_range           = "*"
-}
-
-module "subnet_nsg_association_appgw" {
-  source                    = "../base_modules/subnet_network_security_group_association"
-  count                     = var.application_gateway ? 1 : 0
-  subnet_id                 = module.subnet_appgw[0].id
-  network_security_group_id = module.nsg_appgw[0].id
-}
-
-module "public_ip_appgw" {
-  source              = "../base_modules/public_ip"
-  count               = var.application_gateway ? 1 : 0
-  environment         = var.environment
-  instance            = var.instance
-  location            = var.location
-  random_string       = var.random_string
-  workload            = "appgw"
-  resource_group_name = module.resource_group.name
-  tags                = local.tags
-
-}
-
-# module "application_gateway" {
-#   source               = "../base_modules/application_gateway"
-#   count                = var.application_gateway ? 1 : 0
-#   backend_ip_addresses = var.appgw_backend_ip_addresses
-#   environment          = var.environment
-#   instance             = var.instance
-#   location             = var.location
-#   public_ip_address_id = module.public_ip_appgw[0].id
-#   random_string        = var.random_string
-#   resource_group_name  = module.resource_group.name
-#   subnet_id            = module.subnet_appgw[0].id
-#   tags                 = local.tags
-#   waf_enabled          = var.appgw_waf_enabled
-#   waf_mode             = var.appgw_waf_mode
-#   workload             = var.workload
-# }
-#
 module "public_ip_nat_gateway" {
   source              = "../base_modules/public_ip"
   count               = var.nat_gateway_public_ip_count
   environment         = var.environment
   instance            = "00${count.index + 1}"
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   resource_group_name = module.resource_group.name
   tags                = local.tags
   workload            = "ng"
@@ -531,7 +422,7 @@ module "nat_gateway" {
   count               = var.nat_gateway_public_ip_count > 0 ? 1 : 0
   environment         = var.environment
   location            = var.location
-  random_string       = var.random_string
+  deployment_token       = var.deployment_token
   sku                 = "Standard"
   resource_group_name = module.resource_group.name
   tags                = local.tags
@@ -557,7 +448,7 @@ module "storage_account" {
   network_rules_bypass         = ["AzureServices"]
   network_rules_default_action = "Deny"
   network_rules_ip_rules       = []
-  random_string                = var.random_string
+  deployment_token                = var.deployment_token
   resource_group_name          = module.resource_group_management.name
   tags                         = local.tags
   workload                     = var.workload_management

@@ -80,7 +80,7 @@ resource "azurecaf_name" "this" {
   name          = var.workload
   resource_type = "azurerm_kubernetes_cluster"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -88,7 +88,7 @@ resource "azurecaf_name" "aks_identity" {
   name          = "aks-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -96,7 +96,7 @@ resource "azurecaf_name" "aks_kubelet_identity" {
   name          = "kubelet-${var.workload}"
   resource_type = "azurerm_user_assigned_identity"
   prefixes      = [var.environment]
-  suffixes      = var.random_string != "" ? [var.random_string, local.instance] : [local.instance]
+  suffixes      = var.deployment_token != "" ? [var.deployment_token, local.instance] : [local.instance]
   clean_input   = true
 }
 
@@ -161,12 +161,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     user_assigned_identity_id = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
+  # Node auto-provisioning requires enableAutoScaling = false on every agent pool.
+  # AKS scales the system pool itself when NAP is enabled.
   default_node_pool {
-    name    = var.system_node_pool.name
-    vm_size = var.system_node_pool.vm_size
-    zones   = var.system_node_pool.zones
-    # Node auto-provisioning requires enableAutoScaling = false on every agent pool.
-    # AKS scales the system pool itself when NAP is enabled.
+    name                         = var.system_node_pool.name
+    vm_size                      = var.system_node_pool.vm_size
+    zones                        = var.system_node_pool.zones
     auto_scaling_enabled         = !local.nap_enabled
     min_count                    = local.nap_enabled ? null : var.system_node_pool.min_count
     max_count                    = local.nap_enabled ? null : var.system_node_pool.max_count
@@ -304,9 +304,8 @@ resource "random_string" "node_pool_rotation" {
 resource "azurerm_kubernetes_cluster_node_pool" "this" {
   for_each = var.user_node_pools
 
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
-  name                  = each.value.name
-
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.this.id
+  name                        = each.value.name
   auto_scaling_enabled        = !local.nap_enabled
   node_count                  = each.value.node_count
   os_sku                      = each.value.os
@@ -396,19 +395,30 @@ resource "azapi_update_resource" "addons_profile" {
   }
 
   ignore_missing_property = true
+
+  retry = {
+    error_message_regex = ["User-installed iptables rules found"]
+    attempts            = 5
+    delay               = "30s"
+    max_delay           = "60s"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_node_pool.this
+  ]
 }
 
 # Identity for the Application Load Balancer for the Application Gateway for Containers Addon.
-# data "azurerm_user_assigned_identity" "applicationloadbalancer" {
-#   count               = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
-#   name                = "applicationloadbalancer-${azurerm_kubernetes_cluster.this.name}"
-#   resource_group_name = azurerm_kubernetes_cluster.this.node_resource_group
-#   depends_on          = [azapi_update_resource.alb_controller_addon]
-# }
-#
-# resource "azurerm_role_assignment" "alb_network_contributor" {
-#   count                = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
-#   principal_id         = data.azurerm_user_assigned_identity.applicationloadbalancer[count.index].principal_id
-#   scope                = var.aks_alb_snet
-#   role_definition_name = "Network Contributor"
-# }
+data "azurerm_user_assigned_identity" "applicationloadbalancer" {
+  count               = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
+  name                = "applicationloadbalancer-${azurerm_kubernetes_cluster.this.name}"
+  resource_group_name = azurerm_kubernetes_cluster.this.node_resource_group
+  depends_on          = [azapi_update_resource.addons_profile]
+}
+
+resource "azurerm_role_assignment" "alb_network_contributor" {
+  count                = var.addons_profile.application_gateway_for_containers.enabled ? 1 : 0
+  principal_id         = data.azurerm_user_assigned_identity.applicationloadbalancer[count.index].principal_id
+  scope                = var.aks_alb_snet
+  role_definition_name = "Network Contributor"
+}

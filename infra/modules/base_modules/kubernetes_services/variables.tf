@@ -160,12 +160,6 @@ variable "authorized_ip_ranges" {
   default     = null
 }
 
-variable "vm_size" {
-  description = "(Optional) Default node pool VM size. Default Standard_D4as_v7"
-  type        = string
-  default     = "Standard_D4as_v7"
-}
-
 variable "aks_vnet_id" {
   description = "(Required) Virtual Network ID"
   type        = string
@@ -242,7 +236,7 @@ variable "alert_email" {
   type        = string
 }
 
-variable "random_string" {
+variable "deployment_token" {
   description = "(Optional) A random string suffix to ensure all resources in a deployment share the same identifier."
   type        = string
   default     = ""
@@ -399,5 +393,10 @@ variable "addons_profile" {
     node_auto_provisioning = {
       enabled = false
     }
+  }
+
+  validation {
+    condition     = contains(["BpfVeth", "None"], var.addons_profile.advanced_network_policies.performance.accelerationMode)
+    error_message = "var.addons_profile.advanced_network_policies.performance.accelerationMode must be either 'BpfVeth' or 'None'."
   }
 }

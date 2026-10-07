@@ -28,17 +28,17 @@ output "private_endpoint_subnet_name" {
   value       = module.subnet_private_endpoints.name
 }
 
-output "gateway_public_ip_address" {
+output "virtual_network_gateway_public_ip_address" {
   description = "The public IP address(es) of the Virtual Network Gateway."
-  value       = var.gateway ? module.public_ip_virtual_network_gateway[*].ip_address : null
+  value       = var.virtual_network_gateway ? module.public_ip_virtual_network_gateway[*].ip_address : null
 }
 
-output "gateway_id" {
+output "virtual_network_gateway_id" {
   description = "The ID of the Virtual Network Gateway."
-  value       = var.gateway ? module.virtual_network_gateway[0].id : null
+  value       = var.virtual_network_gateway ? module.virtual_network_gateway[0].id : null
 }
 
-output "gateway_route_table_name" {
+output "virtual_network_gateway_route_table_name" {
   description = "The name of the Route Table for the Virtual Network Gateway."
   value       = module.route_table_gateway.name
 }
@@ -61,11 +61,6 @@ output "firewall_private_ip" {
 output "firewall_public_ip_address" {
   description = "Public IP Address of the Firewall."
   value       = var.firewall.enabled ? module.public_ip_firewall[0].ip_address : null
-}
-
-output "application_gateway_public_ip_address" {
-  description = "Public IP Address of the Application Gateway."
-  value       = var.application_gateway ? module.public_ip_appgw[0].ip_address : null
 }
 
 output "nat_gateway_id" {

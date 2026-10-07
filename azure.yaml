@@ -3,16 +3,16 @@
 name: aks-designs
 infra:
     layers:
-      - name: platform
+      - name: platform_landing_zone
         provider: terraform
         module: main
         path: ./infra/landing_zones/platform_landing_zone
-      - name: aks
+      - name: aks_app_landing_zone
         provider: terraform
         module: main
         path: ./infra/landing_zones/application_landing_zone
         dependsOn:
-          - platform
+          - platform_landing_zone
         hooks:
           postprovision:
             shell: sh

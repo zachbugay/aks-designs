@@ -1,15 +1,3 @@
-variable "aks_node_pool_vm_size" {
-  description = "value of azure kubernetes node pool vm size"
-  type        = string
-  default     = "Standard_D4as_v7"
-}
-
-variable "aks_kubernetes_version" {
-  description = "(Optional) Kubernetes version"
-  type        = string
-  default     = "1.36.3"
-}
-
 variable "location" {
   description = "The Azure region for the specified resources."
   type        = string
@@ -91,16 +79,4 @@ variable "firewall" {
     sku_name      = "AZFW_VNet"
     default_rules = true
   }
-}
-
-variable "application_gateway_trusted_root_certificate_base64" {
-  description = <<-EOT
-    (Optional) Base64 encoded PEM of the CA that signs the backend TLS certificates presented by
-    the in-cluster gateway. Application Gateway v2 marks private-CA backends unhealthy unless this
-    root is uploaded. The value is the demo-ca Secret's ca.crt field verbatim; see the backend TLS
-    trusted root bootstrap section of README.md. When empty, the default trusted certificate
-    authorities are used.
-  EOT
-  type        = string
-  default     = ""
 }

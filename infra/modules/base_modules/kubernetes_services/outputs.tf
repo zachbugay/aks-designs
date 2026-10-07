@@ -13,7 +13,6 @@ output "id" {
   value       = azurerm_kubernetes_cluster.this.id
 }
 
-
 output "client_certificate" {
   value     = azurerm_kubernetes_cluster.this.kube_config[0].client_certificate
   sensitive = true
@@ -64,7 +63,7 @@ output "kubelet_identity_client_id" {
   value       = azurerm_user_assigned_identity.kubelet_identity.client_id
 }
 
-# output "alb_identity_principal_id" {
-#   description = "The principal ID of the Application Load Balancer managed identity."
-#   value       = try(one(data.azurerm_user_assigned_identity.applicationloadbalancer).principal_id, null)
-# }
+output "alb_identity_principal_id" {
+  description = "The principal ID of the Application Load Balancer managed identity."
+  value       = try(one(data.azurerm_user_assigned_identity.applicationloadbalancer).principal_id, null)
+}
