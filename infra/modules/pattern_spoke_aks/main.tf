@@ -284,7 +284,7 @@ module "aks" {
   admin_object_ids             = var.admin_object_ids
   aks_alb_snet                 = module.subnets["aks-alb"].id
   aks_vnet_id                  = module.virtual_network.id
-  alert_email                  = var.alert_email
+  alert_emails                 = var.alert_emails
   authorized_ip_ranges         = var.authorized_ip_ranges
   container_registry_id        = module.acr.id
   environment                  = var.environment

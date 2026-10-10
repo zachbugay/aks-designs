@@ -425,10 +425,13 @@ resource "azurerm_monitor_action_group" "recommended" {
   enabled             = true
   tags                = local.tags
 
-  email_receiver {
-    name                    = "Email_-EmailAction-"
-    email_address           = var.alert_email
-    use_common_alert_schema = true
+  dynamic "email_receiver" {
+    for_each = sort(tolist(var.alert_emails))
+    content {
+      name                    = "Email_${email_receiver.key}"
+      email_address           = email_receiver.value
+      use_common_alert_schema = true
+    }
   }
 }
 

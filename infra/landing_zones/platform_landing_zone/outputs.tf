@@ -45,8 +45,6 @@ output "VIRTUAL_NETWORK_GATEWAY_ROUTE_TABLE_NAME" {
 
 resource "local_file" "platform_landing_zone_outputs" {
   filename = "${path.root}/outputs/${local.environment}.outputs.generated.yaml"
-
-  content = yamlencode({
-    config_key = local.config
-  })
+  # TOOD: Uhhh fix this
+  content = yamlencode({ platform_landing_zone = { dns_servers = module.pattern_hub_and_spoke.dns_servers } })
 }

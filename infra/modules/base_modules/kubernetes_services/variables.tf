@@ -231,9 +231,9 @@ variable "monitor_workspace_id" {
   type = string
 }
 
-variable "alert_email" {
+variable "alert_emails" {
   description = "(Optional) An email to send alerts to for AKS."
-  type        = string
+  type        = set(string)
 }
 
 variable "deployment_token" {

@@ -1,8 +1,24 @@
-variable "aks_node_pool_vm_size" {
-  description = "(Optional) VM Size for all node pools. Defaults to Standard_D4as_v7."
+variable "config_file" {
+  description = "Environment specific YAML configuration file."
   type        = string
-  default     = "Standard_D4as_v7"
 }
+
+variable "location" {
+  description = "The Azure region for the specified resources."
+  type        = string
+}
+
+variable "subscription_id" {
+  description = "Azure Subscription Id"
+  type        = string
+}
+
+variable "tenant_id" {
+  description = "Azure Tenant Id"
+  type        = string
+}
+
+# ---
 
 variable "aks_version" {
   description = "(Optional) Kubernetes version"
@@ -185,24 +201,6 @@ variable "application_gateway_applications" {
 
 variable "dns_servers" {
   type = list(string)
-}
-
-variable "authorized_ip_ranges" {
-  description = "(Optional) IP Address ranges to grant access to the cluster."
-  type        = list(string)
-  default     = null
-}
-
-variable "application_gateway_for_containers" {
-  description = "(Optional) Enable the Application Gateway for Containers (ALB Controller) managed add-on."
-  type        = bool
-  default     = false
-}
-
-variable "application_routing_addon_gateway_api" {
-  description = "(Optional) Enable the Application Routing add-on Gateway."
-  type        = bool
-  default     = false
 }
 
 variable "application_gateway_backend_ip_addresses" {

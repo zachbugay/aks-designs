@@ -30,21 +30,28 @@ resource "random_string" "deployment_token" {
 }
 
 locals {
-  admin_object_ids = var.admin_object_ids != "" ? split(",", var.admin_object_ids) : null
-  vm_size          = var.aks_node_pool_vm_size
-  # config           = yamldecode(file("${path.module}/${var.config_path}"))
+  config                                = yamldecode(file("${path.root}/${var.config_file}"))
+  platform_landing_zone_outputs         = yamldecode(file("${path.root}/../platform_landing_zone/outputs/private-dns-zones.generated.yaml"))
+  admin_object_ids                      = local.config.landing_zones.common.admin_object_ids
+  alert_emails                          = local.config.landing_zones.common.alert_emails
+  application_gateway                   = local.config.landing_zones.common.application_gateway
+  application_gateway_for_containers    = local.config.landing_zones.common.application_gateway_for_containers
+  application_routing_addon_gateway_api = local.config.landing_zones.common.application_routing_addon_gateway_api
+  authorized_ip_ranges                  = local.config.landing_zones.common.authorized_ip_ranges
+  dns_servers                           = local.platform_landing_zone.dns_servers # TODO: Figure a better way/ does this work?
+  vm_size                               = local.config.landing_zones.application.aks.node_pool_size_system
 }
 
 module "spoke_aks" {
   source                                 = "../../modules/pattern_spoke_aks"
   admin_object_ids                       = local.admin_object_ids
-  alert_email                            = var.alert_email
-  application_gateway                    = var.application_gateway                   # Manual setup
-  application_gateway_for_containers     = var.application_gateway_for_containers    # AGC Setup
-  application_routing_addon_gateway_api  = var.application_routing_addon_gateway_api # App routing-addon setup.
-  authorized_ip_ranges                   = var.authorized_ip_ranges
+  alert_emails                           = local.alert_emails
+  application_gateway                    = local.application_gateway                   # Manual setup
+  application_gateway_for_containers     = local.application_gateway_for_containers    # AGC Setup
+  application_routing_addon_gateway_api  = local.application_routing_addon_gateway_api # App routing-addon setup.
+  authorized_ip_ranges                   = local.authorized_ip_ranges
   deployment_token                       = random_string.deployment_token.result
-  dns_servers                            = var.dns_servers
+  dns_servers                            = local.dns_servers
   enable_private_api_server              = var.enable_private_api_server # Default is 'true'
   environment                            = var.aks_environment
   hub_resource_group_name                = var.hub_resource_group_name
