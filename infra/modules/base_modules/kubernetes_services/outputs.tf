@@ -13,6 +13,16 @@ output "id" {
   value       = azurerm_kubernetes_cluster.this.id
 }
 
+output "grafana_id" {
+  description = "The ID of the Managed Grafana instance for this AKS cluster."
+  value       = azurerm_dashboard_grafana.this.id
+}
+
+output "grafana_endpoint" {
+  description = "The endpoint of the Managed Grafana instance for this AKS cluster."
+  value       = azurerm_dashboard_grafana.this.endpoint
+}
+
 output "client_certificate" {
   value     = azurerm_kubernetes_cluster.this.kube_config[0].client_certificate
   sensitive = true

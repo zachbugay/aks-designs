@@ -32,7 +32,41 @@ landing_zones:
         enabled: true
         vpn:
           p2s_enabled: true
-          auth_types: "AAD"
+          auth_types: 
+            - "AAD"
   application:
-    aks: "value"
-    key: "value"
+    aks:
+      workload: "apps"
+      instance: "001"
+      kubernetes_version: "1.36.3"
+      vnet_address_space:
+        - "10.100.12.0/22"
+      enable_private_api_server: true
+      authorized_ip_ranges: []
+      application_gateway:
+        enabled: false
+        backend_ip_addresses: []
+        certificate_common_name: null
+        trusted_root_certificate_pem: null
+      application_gateway_for_containers: false
+      application_routing_addon_gateway_api: false
+      application_gateway_applications: {}
+      system_node_pool:
+        name: "systempool"
+        vm_size: "Standard_D4as_v7"
+        zones: ["1", "2", "3"]
+        os: "AzureLinux"
+        min_count: 1
+        max_count: 8
+        max_pods: 110
+        only_critical_addons_enabled: true
+      user_node_pools:
+        user_node_pool_1:
+          name: "d4adsv7z1"
+          node_count: 1
+          os: "AzureLinux"
+          vm_size: "Standard_D4as_v7"
+          upgrade_settings:
+            drain_timeout_in_minutes: 0
+            max_surge: "10%"
+            node_soak_duration_in_minutes: 0

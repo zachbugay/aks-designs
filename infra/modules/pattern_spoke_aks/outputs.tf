@@ -8,6 +8,16 @@ output "AZURE_AKS_CLUSTER_NAME" {
   value       = module.aks.name
 }
 
+output "grafana_id" {
+  description = "The ID of the Managed Grafana instance for the AKS cluster."
+  value       = module.aks.grafana_id
+}
+
+output "grafana_endpoint" {
+  description = "The endpoint of the Managed Grafana instance for the AKS cluster."
+  value       = module.aks.grafana_endpoint
+}
+
 output "acr_id" {
   description = "The Container Registry ID this cluster has AcrPull access to."
   value       = module.acr.id

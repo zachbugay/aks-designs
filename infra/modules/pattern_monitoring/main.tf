@@ -12,32 +12,79 @@ locals {
   instance = coalesce(var.instance, "001")
   # https://github.com/hashicorp/terraform/issues/23785
   test = pathexpand("~/${path.module}/main.tf")
+
+  workspace           = split("/", var.log_analytics_workspace_id)
+  subscription_id     = local.workspace[2]
+  resource_group_name = local.workspace[4]
+  workspace_name      = local.workspace[8]
+
+  endpoint_check = "az monitor data-collection endpoint show --ids '${azurerm_monitor_data_collection_endpoint.this.id}' --query provisioningState --output tsv --only-show-errors"
+  tables_check = join(" ", [
+    "az monitor log-analytics workspace table list",
+    "--subscription '${local.subscription_id}'",
+    "--resource-group '${local.resource_group_name}'",
+    "--workspace-name '${local.workspace_name}'",
+    "--query \"length([?(name=='Syslog' || name=='InsightsMetrics') && provisioningState=='Succeeded'])\"",
+    "--output tsv --only-show-errors",
+  ])
+
   command_map = substr(local.test, 0, 1) == "/" ? {
     interpreter = ["/usr/bin/env", "bash", "-c"]
     command     = <<-EOT
-      max=30
-      for i in $(seq 1 $max); do
-        state=$(az monitor data-collection endpoint show --ids '${azurerm_monitor_data_collection_endpoint.this.id}' --query provisioningState -o tsv 2>/dev/null)
-        if [ "$state" = "Succeeded" ]; then echo "DCE ready."; exit 0; fi
-        echo "Waiting... ($i/$max, state: $state)"; sleep 10
+      set -euo pipefail
+      
+      max_attempts=30
+      
+      for ((i = 1; i <= $max_attempts; i++)); do
+        state=$(${local.endpoint_check}) || exit $?
+        ready=$(${local.tables_check}) || exit $?
+
+        case "$state" in
+          Failed|Canceled|Cancelled)
+            echo "Endpoint entered terminal state: $state" >&2
+            exit 1
+            ;;
+        esac
+
+        if [[ "$state" == "Succeeded" && "$ready" == "2" ]]; then
+          echo "Endpoint and required workspace tables are ready."
+          exit 0
+        fi
+
+        echo "Waiting ($i/$max_attempts): endpoint=$state; ready tables=$ready/2."
+        if ((i < $max_attempts)); then sleep 10; fi
       done
-      echo "DCE did not reach Succeeded within timeout." >&2; exit 1
+
+      echo "Readiness timed out: endpoint=$state; ready tables=$ready/2." >&2
+      exit 1
     EOT
     } : {
     interpreter = ["pwsh", "-NoProfile", "-NoLogo", "-Command", ]
     command     = <<-EOT
       $maxAttempts = 30
+      $ErrorActionPreference = 'Stop'
+
       for ($i = 1; $i -le $maxAttempts; $i++) {
-        $result = az monitor data-collection endpoint show --ids '${azurerm_monitor_data_collection_endpoint.this.id}' --query provisioningState -o tsv 2>$null
-        if ($result -eq 'Succeeded') {
-          Write-Host "Data Collection Endpoint is ready (provisioningState: Succeeded)."
+        $state = ${local.endpoint_check}
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+        $ready = ${local.tables_check}
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+        if ($state -in @('Failed', 'Canceled', 'Cancelled')) {
+          throw "Endpoint entered terminal state: $state"
+        }
+
+        if ($state -eq 'Succeeded' -and $ready -eq '2') {
+          Write-Host 'Endpoint and required workspace tables are ready.'
           exit 0
         }
-        Write-Host "Waiting for DCE to be ready... (attempt $i/$maxAttempts, provisioningState: $result)"
-        Start-Sleep -Seconds 10
+
+        Write-Host "Waiting ($i/$maxAttempts): endpoint=$state; ready tables=$ready/2."
+        if ($i -lt $maxAttempts) { Start-Sleep -Seconds 10 }
       }
-      Write-Error "Data Collection Endpoint did not reach 'Succeeded' state within timeout."
-      exit 1
+
+      throw "Readiness timed out: endpoint=$state; ready tables=$ready/2."
     EOT
   }
 }
@@ -48,18 +95,18 @@ module "locations" {
 }
 
 module "resource_group" {
-  source        = "../base_modules/resource_group"
+  source           = "../base_modules/resource_group"
   deployment_token = var.deployment_token
-  location      = var.location
-  environment   = var.environment
-  workload      = var.workload
-  instance      = var.instance
-  tags          = local.tags
+  location         = var.location
+  environment      = var.environment
+  workload         = var.workload
+  instance         = var.instance
+  tags             = local.tags
 }
 
 module "virtual_network" {
   source              = "../base_modules/virtual_network"
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -72,7 +119,7 @@ module "virtual_network" {
 
 module "subnet" {
   source               = "../base_modules/subnet"
-  deployment_token        = var.deployment_token
+  deployment_token     = var.deployment_token
   location             = var.location
   environment          = var.environment
   workload             = var.workload
@@ -85,7 +132,7 @@ module "subnet" {
 module "routing" {
   source              = "../pattern_routing"
   count               = var.firewall_enabled ? 1 : 0
-  deployment_token       = var.deployment_token
+  deployment_token    = var.deployment_token
   location            = var.location
   environment         = var.environment
   workload            = var.workload
@@ -112,7 +159,9 @@ resource "azurerm_monitor_data_collection_rule" "this" {
   kind                        = "Linux"
   data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.this.id
 
-  depends_on = [terraform_data.wait_for_dce_ready]
+  depends_on = [
+    terraform_data.wait_for_monitoring_ready,
+  ]
 
   destinations {
     log_analytics {
@@ -174,8 +223,12 @@ resource "azurerm_monitor_data_collection_endpoint" "this" {
 }
 
 # DCE is Data Collection Endpoint.
-resource "terraform_data" "wait_for_dce_ready" {
-  triggers_replace = [azurerm_monitor_data_collection_endpoint.this.id]
+resource "terraform_data" "wait_for_monitoring_ready" {
+  triggers_replace = [
+    azurerm_monitor_data_collection_endpoint.this.id,
+    var.log_analytics_workspace_id,
+    sha256(local.command_map.command),
+  ]
 
   provisioner "local-exec" {
     interpreter = local.command_map.interpreter
@@ -244,4 +297,8 @@ resource "azurerm_private_endpoint" "this" {
     name                 = "pdzg-${azurerm_monitor_private_link_scope.this.name}"
     private_dns_zone_ids = var.private_dns_zone_ids
   }
+
+  depends_on = [
+    module.routing,
+  ]
 }

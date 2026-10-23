@@ -45,6 +45,24 @@ output "VIRTUAL_NETWORK_GATEWAY_ROUTE_TABLE_NAME" {
 
 resource "local_file" "platform_landing_zone_outputs" {
   filename = "${path.root}/outputs/${local.environment}.outputs.generated.yaml"
-  # TOOD: Uhhh fix this
-  content = yamlencode({ platform_landing_zone = { dns_servers = module.pattern_hub_and_spoke.dns_servers } })
+  content = yamlencode({
+    platform_landing_zone = {
+      azure_monitor_workspace_id     = module.pattern_hub_and_spoke.azure_monitor_workspace_id
+      dns_servers                    = module.pattern_hub_and_spoke.dns_servers
+      hub_private_endpoint_subnet_id = module.pattern_hub_and_spoke.hub_private_endpoint_subnet_id
+      hub_resource_group_name        = module.pattern_hub_and_spoke.hub_resource_group_name
+      hub_virtual_network_id         = module.pattern_hub_and_spoke.hub_virtual_network_id
+      location                       = var.location
+      log_analytics_workspace_id     = module.pattern_hub_and_spoke.log_analytics_workspace_id
+      private_dns_zones              = module.pattern_hub_and_spoke.private_dns_zones
+      firewall = {
+        enabled    = local.firewall.enabled
+        private_ip = module.pattern_hub_and_spoke.firewall_private_ip
+      }
+      virtual_network_gateway = {
+        enabled          = local.virtual_network_gateway.enabled
+        route_table_name = module.pattern_hub_and_spoke.virtual_network_gateway_route_table_name
+      }
+    }
+  })
 }

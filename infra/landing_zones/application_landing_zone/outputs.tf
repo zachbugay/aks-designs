@@ -1,3 +1,13 @@
+output "GRAFANA_ID" {
+  description = "The ID of the Managed Grafana instance for the AKS cluster."
+  value       = module.spoke_aks.grafana_id
+}
+
+output "GRAFANA_ENDPOINT" {
+  description = "The endpoint of the Managed Grafana instance for the AKS cluster."
+  value       = module.spoke_aks.grafana_endpoint
+}
+
 # output "HUB_RESOURCE_GROUP" {
 #   description = "Resource group name of the hub."
 #   value       = module.pattern_hub_and_spoke.hub_resource_group_name
